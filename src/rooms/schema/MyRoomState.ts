@@ -11,9 +11,10 @@ export class Player extends Schema {
   @type("number") z: number;
 
   @type("number") movingSpeed: number;
-  movePlayer(){
 
-  }
+  inputQueue: any[] = [];
+
+
 }
 
 export class MyRoomState extends Schema {

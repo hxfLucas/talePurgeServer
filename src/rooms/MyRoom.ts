@@ -5,32 +5,60 @@ import { BASE_MOVING_SPEED } from "../constants";
 export class MyRoom extends Room<MyRoomState> {
   maxClients = 4;
   state = new MyRoomState();
+  elapsedTime = 0;
+  fixedTimeStep = 1000 / 60;
 
+  fixedTick(deltaTime:number){
+
+
+
+ 
+    this.state.players.forEach(player => {
+        let input: any;
+ 
+        // dequeue player inputs
+        while (input = player.inputQueue.shift()) {
+          const velocity = player?.movingSpeed ? player.movingSpeed :  BASE_MOVING_SPEED;
+  
+          if (input.x < 0) {
+            player.x -= velocity;
+      
+          } else if (input.x > 0) {
+            player.x += velocity;
+          }
+      
+          if (input.z < 0) {
+            player.z -= velocity;
+      
+          } else if (input.z > 0) {
+            player.z += velocity;
+          }
+          //y beeing ignored because no verticallity
+        }
+    });
+
+  }
   onCreate (options: any) {
 
     this.onMessage("myPlayer/move", (client, message) => {
      // get reference to the player who sent the message
       const player = this.state.players.get(client.sessionId);
 
-      const velocity = player?.movingSpeed ? player.movingSpeed :  BASE_MOVING_SPEED;
-     
-      console.log("MSG: ",message);
-      if (message.x < 0) {
-        player.x -= velocity;
- 
-      } else if (message.x > 0) {
-        player.x += velocity;
-      }
- 
-      if (message.z < 0) {
-        player.z -= velocity;
- 
-      } else if (message.z > 0) {
-        player.z += velocity;
-      }
-      //y beeing ignored because no verticallity
+      // enqueue input to user input buffer.
+      player.inputQueue.push(message);
+
     });
 
+
+    let elapsedTime = 0;
+    this.setSimulationInterval((deltaTime) => {
+      elapsedTime += deltaTime;
+      while (elapsedTime >= this.fixedTimeStep) {
+        elapsedTime -= this.fixedTimeStep;
+        this.fixedTick(this.fixedTimeStep);
+    }
+    
+    });
 
   }
 
