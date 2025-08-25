@@ -3,6 +3,9 @@ import { MyRoomState } from "./schema/MyRoomState";
 import { Player } from "./schema/MyRoomState";
 import { BASE_MOVING_SPEED } from "../constants";
 import { FlarisMap } from "../maps/Map/FlarisMap";
+import GameDataHelper from "../helper/GameDataHelper";
+import { PlayerMageClass } from "../classes/mage/PlayerMageClass";
+import { InputPlayerSettings, PlayerInputSettings } from "../player/PlayerInputSettings";
 export class MyRoom extends Room<MyRoomState> {
   maxClients = 100; //todo later prevent from creating new rooms when max clients reached
   state = new MyRoomState();
@@ -70,6 +73,9 @@ export class MyRoom extends Room<MyRoomState> {
     const mapHeight = flarisMap.gameMap.height;
     this.state.mapData = flarisMap.gameMap;
 
+    this.state.gameData.gameSkills = GameDataHelper().gameSkills;
+
+
 
 
     console.log("THE OPTIONS: ",options);
@@ -104,6 +110,8 @@ export class MyRoom extends Room<MyRoomState> {
     // create Player instance
     const player = new Player();
 
+    player.playerClass = new PlayerMageClass().getPlayerClass();
+
     player.playerSessionId = client.sessionId;
     // place Player at a random position
     player.x = -14.19;//(Math.random() * mapWidth);
@@ -111,6 +119,12 @@ export class MyRoom extends Room<MyRoomState> {
     player.z = 0;
 
     player.movingSpeed = BASE_MOVING_SPEED;
+
+    let playerInputSettings = new PlayerInputSettings();
+    playerInputSettings.keyboardCodeSkillOne = 'Digit1';
+    playerInputSettings.keyboardKeySkillOne = '1';
+    
+    player.playerInputSettings = playerInputSettings;
 
     // place player in the map of players by its sessionId
     // (client.sessionId is unique per connection!)
