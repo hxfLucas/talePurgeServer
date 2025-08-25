@@ -4,7 +4,7 @@ import { Player } from "./schema/MyRoomState";
 import { BASE_MOVING_SPEED } from "../constants";
 import { FlarisMap } from "../maps/Map/FlarisMap";
 export class MyRoom extends Room<MyRoomState> {
-  maxClients = 4;
+  maxClients = 100; //todo later prevent from creating new rooms when max clients reached
   state = new MyRoomState();
   elapsedTime = 0;
   fixedTimeStep = 1000 / 60;
@@ -18,7 +18,7 @@ export class MyRoom extends Room<MyRoomState> {
     //console.log("RES: ", res);
     //todo later, for better 'hack speed prevention', for a certain movement speed check specific "epsilon" tolerances
     //for now we simply allow 0.013
-
+    
     //todo LOG: invalid movement speed breaches
     return res < epsilon;
   }
