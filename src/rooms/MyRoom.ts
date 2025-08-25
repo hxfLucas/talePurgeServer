@@ -2,6 +2,7 @@ import { Room, Client } from "@colyseus/core";
 import { MyRoomState } from "./schema/MyRoomState";
 import { Player } from "./schema/MyRoomState";
 import { BASE_MOVING_SPEED } from "../constants";
+import { FlarisMap } from "../maps/Map/FlarisMap";
 export class MyRoom extends Room<MyRoomState> {
   maxClients = 4;
   state = new MyRoomState();
@@ -12,11 +13,11 @@ export class MyRoom extends Room<MyRoomState> {
     const lenSq = dx * dx + dz * dz;
     const step = movementSpeed;
     const stepSq = step * step; // 0.01
-    const epsilon = 0.02;
+    const epsilon = 0.013;
     let res = Math.abs(lenSq - stepSq);
-    console.log("RES: ", res);
+    //console.log("RES: ", res);
     //todo later, for better 'hack speed prevention', for a certain movement speed check specific "epsilon" tolerances
-    //for now we simply allow 0.02
+    //for now we simply allow 0.013
 
     //todo LOG: invalid movement speed breaches
     return res < epsilon;
@@ -34,7 +35,11 @@ export class MyRoom extends Room<MyRoomState> {
         while (input = player.inputQueue.shift()) {
           const velocity = player?.movingSpeed ? player.movingSpeed :  BASE_MOVING_SPEED;
   
-          console.log("IS VALID:",this.isValidMovement(velocity,input.x, input.z));
+          let isValidMovement = this.isValidMovement(velocity,input.x, input.z);
+          if (!isValidMovement) {
+            //todo log invalid movement attempt ??
+            continue;
+          }
           
           player.x += input.x;
           player.z += input.z;
@@ -60,6 +65,7 @@ export class MyRoom extends Room<MyRoomState> {
   }
   onCreate (options: any) {
 
+    console.log("THE OPTIONS: ",options);
     this.onMessage("myPlayer/move", (client, message) => {
      // get reference to the player who sent the message
       const player = this.state.players.get(client.sessionId);
@@ -85,6 +91,10 @@ export class MyRoom extends Room<MyRoomState> {
   onJoin (client: Client, options: any) {
     console.log(client.sessionId, "joined!");
  
+    console.log("THE client: ",client);
+
+
+
     const mapWidth = 800;
     const mapHeight = 600;
 
@@ -98,9 +108,11 @@ export class MyRoom extends Room<MyRoomState> {
     player.z = 0;
 
     player.movingSpeed = BASE_MOVING_SPEED;
+
     // place player in the map of players by its sessionId
     // (client.sessionId is unique per connection!)
     this.state.players.set(client.sessionId, player);
+    
 
     
   }

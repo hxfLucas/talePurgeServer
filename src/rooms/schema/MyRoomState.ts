@@ -1,5 +1,14 @@
 import { MapSchema, Schema, type } from "@colyseus/schema";
+import { GameMapObject } from "../../maps/Classes/GameMapObject";
 
+export class GameMap extends Schema {
+
+  @type("string") identifier: string;
+  @type("string") name: string;
+  @type("number") width: number;
+  @type("number") height: number;
+  gameMapObjects:GameMapObject[] = [];
+}
 
 export class Player extends Schema {
 
@@ -21,4 +30,5 @@ export class MyRoomState extends Schema {
 
   @type("string") mySynchronizedProperty: string = "Hello world";
   @type({ map: Player }) players = new MapSchema<Player>();
+  //@type({ GameMap }) map = new GameMap();
 }
