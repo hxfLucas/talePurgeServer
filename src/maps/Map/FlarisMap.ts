@@ -19,10 +19,10 @@ export class FlarisMap {
 
         const gameMapObjects = new ArraySchema<GameMapObject>();
 
-        let identifierSearch = mapAssets().get('tree_01').identifier;
-        gameMapObjects.push(new GameMapObject().define(identifierSearch,{
+        let treeAsset = mapAssets().get('tree_01');
+        gameMapObjects.push(new GameMapObject().define(treeAsset.identifier,{
             x:-21.93, y:2, z:7.41
-        },{isBillboard:1}));
+        },{...treeAsset}));
       
         this.gameMap.gameMapObjects = gameMapObjects;
 

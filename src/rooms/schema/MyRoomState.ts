@@ -2,7 +2,8 @@ import { ArraySchema, MapSchema, Schema, type } from "@colyseus/schema";
 import { GameMapObject } from "../../maps/Classes/GameMapObject";
 import { GameSkill } from "../../skills/GameSkill";
 import { PlayerClass } from "../../classes/PlayerClass";
-import { InputPlayerSettings, PlayerInputSettings } from "../../player/PlayerInputSettings";
+import {  PlayerInputSettings } from "../../player/PlayerInputSettings";
+import { PlayerUISettings } from "../../player/PlayerUISettings";
 
 export class GameMap extends Schema {
 
@@ -29,10 +30,13 @@ export class Player extends Schema {
   @type("number") y: number;
   @type("number") z: number;
 
+  @type("number") lastSkillSlotSelected: number;
+
   @type("number") movingSpeed: number;
 
   @type(PlayerClass) playerClass: PlayerClass;
 
+  @type(PlayerUISettings) playerUISettings: PlayerUISettings;
   @type(PlayerInputSettings) playerInputSettings: PlayerInputSettings;
 
   inputQueue: any[] = [];

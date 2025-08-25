@@ -5,7 +5,9 @@ import { BASE_MOVING_SPEED } from "../constants";
 import { FlarisMap } from "../maps/Map/FlarisMap";
 import GameDataHelper from "../helper/GameDataHelper";
 import { PlayerMageClass } from "../classes/mage/PlayerMageClass";
-import { InputPlayerSettings, PlayerInputSettings } from "../player/PlayerInputSettings";
+import {  PlayerInputSettings } from "../player/PlayerInputSettings";
+import { PlayerUISettings } from "../player/PlayerUISettings";
+import { FirebombSkill } from "../skills/mage/firebomb/FirebombSkill";
 export class MyRoom extends Room<MyRoomState> {
   maxClients = 100; //todo later prevent from creating new rooms when max clients reached
   state = new MyRoomState();
@@ -126,6 +128,12 @@ export class MyRoom extends Room<MyRoomState> {
     
     player.playerInputSettings = playerInputSettings;
 
+    let playerUISettings = new PlayerUISettings();
+    playerUISettings.skillBar_skillOneIdentifier = new FirebombSkill().getGameSkill().skillIdentifier;
+
+    player.playerUISettings = playerUISettings;
+
+    player.lastSkillSlotSelected = -1;
     // place player in the map of players by its sessionId
     // (client.sessionId is unique per connection!)
     this.state.players.set(client.sessionId, player);

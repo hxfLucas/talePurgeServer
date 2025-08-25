@@ -10,6 +10,11 @@ export class GameMapObject extends Schema  {
       @type("number") y: number;
       @type("number") z: number;
 
+      @type("number") colliderWidthX: number;
+      @type("number") colliderWidthY: number;
+      @type("number") colliderWidthZ: number;
+      
+
       @type("number") isBillboard = 0; //always face the camera
 
       define(objectIdentifier:string,positionData:{x:number,y:number,z:number},settings?:any){
@@ -20,9 +25,9 @@ export class GameMapObject extends Schema  {
         this.y = positionData.y;
         this.z = positionData.z;
         if(settings){
-          if(settings.isBillboard !== undefined){
-            this.isBillboard = settings.isBillboard ? 1 : 0;
-          }
+          
+          const updatedObject = { ...this, ...settings };
+          Object.assign(this, updatedObject);
         }
         return this;
 
