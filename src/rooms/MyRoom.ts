@@ -65,6 +65,13 @@ export class MyRoom extends Room<MyRoomState> {
   }
   onCreate (options: any) {
 
+    let flarisMap = new FlarisMap();
+    const mapWidth = flarisMap.gameMap.width;
+    const mapHeight = flarisMap.gameMap.height;
+    this.state.mapData = flarisMap.gameMap;
+
+
+
     console.log("THE OPTIONS: ",options);
     this.onMessage("myPlayer/move", (client, message) => {
      // get reference to the player who sent the message
@@ -93,10 +100,6 @@ export class MyRoom extends Room<MyRoomState> {
  
     console.log("THE client: ",client);
 
-
-
-    const mapWidth = 800;
-    const mapHeight = 600;
 
     // create Player instance
     const player = new Player();

@@ -12,7 +12,10 @@ export function mapAssets(){
       returningAsset = {
         identifier: "tree_01"
       }
+      return returningAsset;
     }
+
+    throw "asset.map.not.found.resource";
     return returningAsset;
   }
 
