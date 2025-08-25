@@ -1,16 +1,37 @@
 import { Room, Client } from "@colyseus/core";
 import { MyRoomState } from "./schema/MyRoomState";
 import { Player } from "./schema/MyRoomState";
+import { BASE_MOVING_SPEED } from "../constants";
 export class MyRoom extends Room<MyRoomState> {
   maxClients = 4;
   state = new MyRoomState();
 
   onCreate (options: any) {
-    this.onMessage("type", (client, message) => {
-      //
-      // handle "type" message
-      //
+
+    this.onMessage("myPlayer/move", (client, message) => {
+     // get reference to the player who sent the message
+      const player = this.state.players.get(client.sessionId);
+
+      const velocity = player?.movingSpeed ? player.movingSpeed :  BASE_MOVING_SPEED;
+     
+      console.log("MSG: ",message);
+      if (message.x < 0) {
+        player.x -= velocity;
+ 
+      } else if (message.x > 0) {
+        player.x += velocity;
+      }
+ 
+      if (message.z < 0) {
+        player.z -= velocity;
+ 
+      } else if (message.z > 0) {
+        player.z += velocity;
+      }
+      //y beeing ignored because no verticallity
     });
+
+
   }
 
   onJoin (client: Client, options: any) {
@@ -22,10 +43,13 @@ export class MyRoom extends Room<MyRoomState> {
     // create Player instance
     const player = new Player();
 
+    player.playerSessionId = client.sessionId;
     // place Player at a random position
-    player.x = (Math.random() * mapWidth);
-    player.y = (Math.random() * mapHeight);
+    player.x = -14.19;//(Math.random() * mapWidth);
+    player.y = 0.65; //(Math.random() * mapHeight);
+    player.z = 0;
 
+    player.movingSpeed = BASE_MOVING_SPEED;
     // place player in the map of players by its sessionId
     // (client.sessionId is unique per connection!)
     this.state.players.set(client.sessionId, player);
