@@ -8,6 +8,20 @@ export class MyRoom extends Room<MyRoomState> {
   elapsedTime = 0;
   fixedTimeStep = 1000 / 60;
 
+  isValidMovement(movementSpeed:number,dx:number, dz:number) {
+    const lenSq = dx * dx + dz * dz;
+    const step = movementSpeed;
+    const stepSq = step * step; // 0.01
+    const epsilon = 0.02;
+    let res = Math.abs(lenSq - stepSq);
+    console.log("RES: ", res);
+    //todo later, for better 'hack speed prevention', for a certain movement speed check specific "epsilon" tolerances
+    //for now we simply allow 0.02
+
+    //todo LOG: invalid movement speed breaches
+    return res < epsilon;
+  }
+
   fixedTick(deltaTime:number){
 
 
@@ -20,6 +34,12 @@ export class MyRoom extends Room<MyRoomState> {
         while (input = player.inputQueue.shift()) {
           const velocity = player?.movingSpeed ? player.movingSpeed :  BASE_MOVING_SPEED;
   
+          console.log("IS VALID:",this.isValidMovement(velocity,input.x, input.z));
+          
+          player.x += input.x;
+          player.z += input.z;
+          
+          /*
           if (input.x < 0) {
             player.x -= velocity;
       
@@ -32,7 +52,7 @@ export class MyRoom extends Room<MyRoomState> {
       
           } else if (input.z > 0) {
             player.z += velocity;
-          }
+          }*/
           //y beeing ignored because no verticallity
         }
     });

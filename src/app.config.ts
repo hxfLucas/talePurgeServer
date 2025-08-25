@@ -15,6 +15,8 @@ export default config({
          */
         gameServer.define('my_room', MyRoom);
 
+        //gameServer.simulateLatency(200);
+
     },
 
     initializeExpress: (app) => {
