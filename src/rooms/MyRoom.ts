@@ -14,19 +14,40 @@ export class MyRoom extends Room<MyRoomState> {
   elapsedTime = 0;
   fixedTimeStep = 1000 / 60;
 
-  isValidMovement(movementSpeed:number,dx:number, dz:number) {
+  isValidMovement(player: Player, dx: number, dz: number) {
+    const velocity = player?.movingSpeed ?? BASE_MOVING_SPEED;
     const lenSq = dx * dx + dz * dz;
-    const step = movementSpeed;
-    const stepSq = step * step; // 0.01
+    const stepSq = velocity * velocity;
     const epsilon = 0.013;
-    let res = Math.abs(lenSq - stepSq);
-    //console.log("RES: ", res);
-    //todo later, for better 'hack speed prevention', for a certain movement speed check specific "epsilon" tolerances
-    //for now we simply allow 0.013
-    
-    //todo LOG: invalid movement speed breaches
-    return res < epsilon;
+  
+    // --- speed hack check ---
+    if (Math.abs(lenSq - stepSq) > epsilon) {
+      return false;
+    }
+  
+    // --- collision check ---
+    const nextX = player.x + dx;
+    const nextZ = player.z + dz;
+  
+    for (const obj of this.state.mapData.gameMapObjects) {
+      if (!obj.colliderWidthX || !obj.colliderWidthZ) continue; // skip objects without colliders
+      
+     
+      const minX = obj.x - obj.colliderWidthX / 2;
+      const maxX = obj.x + obj.colliderWidthX / 2;
+      const minZ = obj.z - obj.colliderWidthZ / 2;
+      const maxZ = obj.z + obj.colliderWidthZ / 2;
+      
+      // simple point vs AABB check
+      if (nextX >= minX && nextX <= maxX && nextZ >= minZ && nextZ <= maxZ) {
+        console.log("COLLIDED!");
+        return false; // collision!
+      }
+    }
+  
+    return true;
   }
+  
 
   fixedTick(deltaTime:number){
 
@@ -40,7 +61,7 @@ export class MyRoom extends Room<MyRoomState> {
         while (input = player.inputQueue.shift()) {
           const velocity = player?.movingSpeed ? player.movingSpeed :  BASE_MOVING_SPEED;
   
-          let isValidMovement = this.isValidMovement(velocity,input.x, input.z);
+          let isValidMovement = this.isValidMovement(player,input.x, input.z);
           if (!isValidMovement) {
             //todo log invalid movement attempt ??
             continue;
@@ -133,7 +154,7 @@ export class MyRoom extends Room<MyRoomState> {
 
     player.playerUISettings = playerUISettings;
 
-    player.lastSkillSlotSelected = -1;
+    player.lastSkillSlotSelected;
     // place player in the map of players by its sessionId
     // (client.sessionId is unique per connection!)
     this.state.players.set(client.sessionId, player);

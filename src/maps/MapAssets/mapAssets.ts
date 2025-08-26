@@ -17,8 +17,8 @@ export function mapAssets(){
     if(identifier === "tree_01"){
       returningAsset = {
         identifier: "tree_01",
-        colliderWidthX: 0.12,
-        colliderWidthZ: 0.12,
+        colliderWidthX: 0.03,
+        colliderWidthZ: 0.03,
         colliderWidthY: 1,
         isBillboard:1
       }
