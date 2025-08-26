@@ -4,10 +4,11 @@ import { Player } from "./schema/MyRoomState";
 import { BASE_MOVING_SPEED } from "../constants";
 import { FlarisMap } from "../maps/Map/FlarisMap";
 import GameDataHelper from "../helper/GameDataHelper";
-import { PlayerMageClass } from "../classes/mage/PlayerMageClass";
+
 import {  PlayerInputSettings } from "../player/PlayerInputSettings";
 import { PlayerUISettings } from "../player/PlayerUISettings";
 import { FirebombSkill } from "../skills/mage/firebomb/FirebombSkill";
+import { FireballSkill } from "../skills/mage/fireball/FireballSkill";
 export class MyRoom extends Room<MyRoomState> {
   maxClients = 100; //todo later prevent from creating new rooms when max clients reached
   state = new MyRoomState();
@@ -133,7 +134,7 @@ export class MyRoom extends Room<MyRoomState> {
     // create Player instance
     const player = new Player();
 
-    player.playerClass = new PlayerMageClass().getPlayerClass();
+    player.playerClass = GameDataHelper().gamePlayerClasses.get("MAGE"); //.//new PlayerMageClass().getPlayerClass();
 
     player.playerSessionId = client.sessionId;
     // place Player at a random position
@@ -150,8 +151,9 @@ export class MyRoom extends Room<MyRoomState> {
     player.playerInputSettings = playerInputSettings;
 
     let playerUISettings = new PlayerUISettings();
-    playerUISettings.skillBar_skillOneIdentifier = new FirebombSkill().getGameSkill().skillIdentifier;
-
+    
+    playerUISettings.skillBar_skillOneIdentifier = new FireballSkill().getGameSkill().skillIdentifier;
+    playerUISettings.skillBar_skillTwoIdentifier = new FirebombSkill().getGameSkill().skillIdentifier;
     player.playerUISettings = playerUISettings;
 
     player.lastSkillSlotSelected;

@@ -4,7 +4,7 @@ import { ArraySchema, MapSchema, Schema, type } from "@colyseus/schema";
 import { GameSkill } from "../../GameSkill";
 import { PlayerMageClass } from "../../../classes/mage/PlayerMageClass";
 
-export class FirebombSkill {
+export class FireballSkill {
 
     gameSkill: GameSkill;
 
@@ -12,10 +12,10 @@ export class FirebombSkill {
 
     constructor(){
         this.gameSkill = new GameSkill();
-        this.gameSkill.skillIdentifier = "FIREBOMB_SKILL";
+        this.gameSkill.skillIdentifier = "FIREBALL_SKILL";
         this.gameSkill.castMilliseconds = 250;
-        this.gameSkill.cooldownMilliseconds = 3000;
-        this.gameSkill.skillType = "THROWABLE";
+        this.gameSkill.cooldownMilliseconds = 500;
+        this.gameSkill.skillType = "SHOOTABLE";
         this.gameSkill.requiresClassIdentifier = new PlayerMageClass().getPlayerClass().classIdentifier;
     }
 

@@ -1,7 +1,7 @@
 import { ArraySchema, MapSchema, Schema, type } from "@colyseus/schema";
 import { GameMapObject } from "../../maps/Classes/GameMapObject";
 import { GameSkill } from "../../skills/GameSkill";
-import { PlayerClass } from "../../classes/PlayerClass";
+import { GamePlayerClass } from "../../classes/GamePlayerClass";
 import {  PlayerInputSettings } from "../../player/PlayerInputSettings";
 import { PlayerUISettings } from "../../player/PlayerUISettings";
 
@@ -34,7 +34,7 @@ export class Player extends Schema {
 
   @type("number") movingSpeed: number;
 
-  @type(PlayerClass) playerClass: PlayerClass;
+  @type(GamePlayerClass) playerClass: GamePlayerClass;
 
   @type(PlayerUISettings) playerUISettings: PlayerUISettings;
   @type(PlayerInputSettings) playerInputSettings: PlayerInputSettings;
