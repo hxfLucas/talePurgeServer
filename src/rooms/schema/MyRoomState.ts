@@ -4,6 +4,7 @@ import { GameSkill } from "../../skills/GameSkill";
 import { GamePlayerClass } from "../../classes/GamePlayerClass";
 import {  PlayerInputSettings } from "../../player/PlayerInputSettings";
 import { PlayerUISettings } from "../../player/PlayerUISettings";
+import { GameDataGlobal } from "../../GameDataGlobal";
 
 export class GameMap extends Schema {
 
@@ -19,6 +20,7 @@ export class GameData extends Schema {
 
   @type({ map: GameSkill }) gameSkills = new MapSchema<GameSkill>();
   @type({ map: GamePlayerClass }) gamePlayerClasses = new MapSchema<GamePlayerClass>();
+  @type(GameDataGlobal) gameDataGlobal = new GameDataGlobal();
   
 }
 
