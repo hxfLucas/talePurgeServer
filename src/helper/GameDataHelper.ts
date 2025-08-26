@@ -3,6 +3,8 @@ import { GameSkill } from "../skills/GameSkill";
 import { FirebombSkill } from "../skills/mage/firebomb/FirebombSkill";
 import { GamePlayerClass } from "../classes/GamePlayerClass";
 import { MagicPulseSkill } from "../skills/mage/magicPulse/MagicPulseSkill";
+import { PlayerMageClass } from "../classes/mage/PlayerMageClass";
+import { FireballSkill } from "../skills/mage/fireball/FireballSkill";
 
 function GameDataHelper(){
 
@@ -10,12 +12,22 @@ function GameDataHelper(){
 
         let gameSkillsMap = new MapSchema<GameSkill>();
 
-        //add new skills here
         let firebombSkill = new FirebombSkill();
         gameSkillsMap.set(firebombSkill.gameSkill.skillIdentifier,firebombSkill.getGameSkill());
 
+
+        let fireballSkill = new FireballSkill();
+        gameSkillsMap.set(fireballSkill.gameSkill.skillIdentifier,fireballSkill.getGameSkill());
+
+        let magicPulseSkill = new MagicPulseSkill();
+        gameSkillsMap.set(magicPulseSkill.gameSkill.skillIdentifier,magicPulseSkill.getGameSkill());
+
+        //add new skills here
+
         return gameSkillsMap;
     }
+
+
 
     function getGamePlayerClasses(){
         let gamePlayerClassesMap = new MapSchema<GamePlayerClass>();
@@ -23,11 +35,10 @@ function GameDataHelper(){
 
         //add new classes here
 
-        let playerMageClass = new GamePlayerClass();
-        playerMageClass.classIdentifier = "MAGE";
-        playerMageClass.basicAttackSkill = new MagicPulseSkill().getGameSkill();
+        let playerMageClass = new PlayerMageClass();
+
     
-        gamePlayerClassesMap.set(playerMageClass.classIdentifier,playerMageClass);
+        gamePlayerClassesMap.set(playerMageClass.getPlayerClass().classIdentifier,playerMageClass.getPlayerClass());
 
         return gamePlayerClassesMap;
     }

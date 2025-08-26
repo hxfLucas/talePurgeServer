@@ -7,8 +7,9 @@ import GameDataHelper from "../helper/GameDataHelper";
 
 import {  PlayerInputSettings } from "../player/PlayerInputSettings";
 import { PlayerUISettings } from "../player/PlayerUISettings";
-import { FirebombSkill } from "../skills/mage/firebomb/FirebombSkill";
+
 import { FireballSkill } from "../skills/mage/fireball/FireballSkill";
+import { FirebombSkill } from "../skills/mage/firebomb/FirebombSkill";
 export class MyRoom extends Room<MyRoomState> {
   maxClients = 100; //todo later prevent from creating new rooms when max clients reached
   state = new MyRoomState();
