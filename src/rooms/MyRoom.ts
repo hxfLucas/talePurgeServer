@@ -10,6 +10,7 @@ import { PlayerUISettings } from "../player/PlayerUISettings";
 
 import { FireballSkill } from "../skills/mage/fireball/FireballSkill";
 import { FirebombSkill } from "../skills/mage/firebomb/FirebombSkill";
+import GameDataPlayerClassIdentifiersHelper from "../helper/identifiers/GameDataPlayerClassIdentifiersHelper";
 export class MyRoom extends Room<MyRoomState> {
   maxClients = 100; //todo later prevent from creating new rooms when max clients reached
   state = new MyRoomState();
@@ -99,6 +100,7 @@ export class MyRoom extends Room<MyRoomState> {
     this.state.mapData = flarisMap.gameMap;
 
     this.state.gameData.gameSkills = GameDataHelper().gameSkills;
+    this.state.gameData.gamePlayerClasses = GameDataHelper().gamePlayerClasses;
 
 
 
@@ -135,7 +137,7 @@ export class MyRoom extends Room<MyRoomState> {
     // create Player instance
     const player = new Player();
 
-    player.playerClass = GameDataHelper().gamePlayerClasses.get("MAGE"); //.//new PlayerMageClass().getPlayerClass();
+    player.playerClassIdentifier = GameDataPlayerClassIdentifiersHelper().getMageClassIdentifier(); //.//new PlayerMageClass().getPlayerClass();
 
     player.playerSessionId = client.sessionId;
     // place Player at a random position

@@ -4,6 +4,6 @@ import { GameSkill } from "../skills/GameSkill";
 
 export class GamePlayerClass extends Schema  {
       @type("string") classIdentifier: string;
-      @type(GameSkill) basicAttackSkill: GameSkill;
+      @type("string") basicAttackSkillIdentifier: string;
       
 }

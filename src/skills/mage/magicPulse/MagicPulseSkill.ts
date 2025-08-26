@@ -14,6 +14,7 @@ export class MagicPulseSkill {
         this.gameSkill.skillIdentifier = GameDataSkillsIdentifiersHelper().getMagicPulseSkillIdentifier();
         this.gameSkill.castMilliseconds = 250;
         this.gameSkill.cooldownMilliseconds = 500;
+        this.gameSkill.maxDistance = 10;
         this.gameSkill.skillType = "SHOOTABLE";
         this.gameSkill.requiresClassIdentifier =  GameDataPlayerClassIdentifiersHelper().getMageClassIdentifier();
     }

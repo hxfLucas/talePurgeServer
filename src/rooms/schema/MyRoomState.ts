@@ -18,7 +18,8 @@ export class GameMap extends Schema {
 export class GameData extends Schema {
 
   @type({ map: GameSkill }) gameSkills = new MapSchema<GameSkill>();
-
+  @type({ map: GamePlayerClass }) gamePlayerClasses = new MapSchema<GamePlayerClass>();
+  
 }
 
 export class Player extends Schema {
@@ -34,7 +35,8 @@ export class Player extends Schema {
 
   @type("number") movingSpeed: number;
 
-  @type(GamePlayerClass) playerClass: GamePlayerClass;
+  @type("string") playerClassIdentifier: string;
+ 
 
   @type(PlayerUISettings) playerUISettings: PlayerUISettings;
   @type(PlayerInputSettings) playerInputSettings: PlayerInputSettings;
