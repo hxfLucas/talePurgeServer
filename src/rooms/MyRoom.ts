@@ -130,6 +130,10 @@ export class MyRoom extends Room<MyRoomState> {
   }
   
   updateProjectiles(deltaTime: number) {
+
+    const minimalDebug = process.env.MINIMAL_DAMAGE_DEBUG === "true";
+    const verboseDebug = process.env.VERBOSE_DAMAGE_DEBUG === "true";
+
     const toDelete: string[] = [];
   
     for (const [id, proj] of this.state.projectiles) {
@@ -215,14 +219,18 @@ export class MyRoom extends Room<MyRoomState> {
           if (hitPlayerId) {
             wasSomethingRelevantHit = true;
             shouldDeleteFromMemory = true;
-            console.log(`💥 Projectile ${id} HIT player ${hitPlayerId} with skill ${proj.skillIdentifier}`);
-           
+            
+            if(verboseDebug){
+              console.log(`[VERBOSE] #1a 💥 Projectile ${id} HIT player ${hitPlayerId} with skill ${proj.skillIdentifier}`);
+            }
           
           }else if(whatWasHit.hitReceiverType === "GROUND"){
             wasSomethingRelevantHit = true;
             shouldDeleteFromMemory = true;
-          
-            console.log(`❌ Projectile ${id} hit the ground (target position < max)`);
+            if(verboseDebug){
+              console.log(`[VERBOSE] #2a ❌ Projectile ${id} hit the ground (target position < max)`);
+            }
+            
           }
           
         }
@@ -235,15 +243,12 @@ export class MyRoom extends Room<MyRoomState> {
         //nothing relevant was hit
         if (proj.traveled >= proj.projectileProperties.maxDistance) { 
           // --- Max distance check ---
-          if(skillData.skillType === "THROWABLE"){
 
-          }else{
-            console.log(`❌ Projectile ${id} expired (max distance)`);
-          }
-
-         
-          console.log(`❌ Projectile ${id} hit the ground (max distance)`);
           if(skillData.AOERadius > 0){
+            
+            if(verboseDebug){
+              console.log(`[VERBOSE] #3a ❌ Projectile ${id} hit the ground (max distance)`);
+            }
             let whatWasHit = new WhatWasHit();
             whatWasHit.hitReceiverType = "GROUND";
             whatWasHit.hitReceiverSessionId = null;
@@ -251,6 +256,11 @@ export class MyRoom extends Room<MyRoomState> {
             whatWasHit.hitCoordinatesY = proj.y;
             whatWasHit.hitCoordinatesZ = proj.z;
             arrWhatWasHit.push(whatWasHit);
+          }else{
+            if(verboseDebug){
+              console.log(`[VERBOSE] #4a ❌ Projectile ${id} expired (max distance)`);
+            }
+            
           }
 
           
@@ -277,19 +287,16 @@ export class MyRoom extends Room<MyRoomState> {
         let hasAOE = false;
 
         if(proj.projectileProperties.AOERadius > 0){
-          console.log("HAS AOE");
           hasAOE = true;
         }
         
 
+        let relevantHitTargets:WhatWasHit[] = [];
   
-        let damagableHitTargets:WhatWasHit[] = [];
+        
         if(!hasAOE){
           for(let i = 0; i<arrWhatWasHit.length; i++){
-            let whatWasHit = arrWhatWasHit[i];
-            if(whatWasHit.hitReceiverType === "PLAYER"){
-              damagableHitTargets.push(whatWasHit);
-            }
+            relevantHitTargets.push(arrWhatWasHit[i]);
           }
         }else if(hasAOE){
           if(arrWhatWasHit.length > 0){
@@ -302,8 +309,7 @@ export class MyRoom extends Room<MyRoomState> {
   
             aoeProjectile.projectileProperties.projectileHeight = proj.projectileProperties.AOERadius;
             aoeProjectile.projectileProperties.projectileWidth = proj.projectileProperties.AOERadius;
-             
-            console.log("SHOULD CHECK AOE NOW!");
+
             //HERE CREATE A NEW METHOD CALLED CHECKPROJECTILEAOECOLLISION
             //check if something collides with the AOE radius 
             let checkNewReceiveDmg: WhatWasHit[] | null = this.checkProjectileCollisions(
@@ -316,9 +322,13 @@ export class MyRoom extends Room<MyRoomState> {
               for(let i = 0; i<checkNewReceiveDmg.length; i++){
                 if(checkNewReceiveDmg[i].hitReceiverType === "PLAYER"){
                   let hitPlayerId = checkNewReceiveDmg[i].hitReceiverSessionId;
-                  console.log(`💥 (AOE) Projectile ${id} HIT player ${hitPlayerId} with skill ${proj.skillIdentifier}`);
-                  damagableHitTargets.push(checkNewReceiveDmg[i]);
+                  
+                  if(verboseDebug){
+                    console.log(`[VERBOSE] #5a 💥 (AOE) Projectile ${id} HIT player ${hitPlayerId} with skill ${proj.skillIdentifier}`);
+                  }
                 }
+
+                relevantHitTargets.push(checkNewReceiveDmg[i]);
               }
             }
           }
@@ -329,8 +339,34 @@ export class MyRoom extends Room<MyRoomState> {
 
 
         //damage logic etc
-        if(damagableHitTargets.length > 0){
-          console.log("HAS SOMETHING TO DAMAGE YES");
+        if(relevantHitTargets.length > 0){
+
+          //clean possible repeatables
+          let targetsToDamage:WhatWasHit[] = [];
+          let mapAlreadyAddedToDamageTargets:any =  {};
+          for(let i = 0; i<relevantHitTargets.length;i++){
+            if(relevantHitTargets[i].hitReceiverType === "PLAYER"){
+              let playerSessionId = relevantHitTargets[i].hitReceiverSessionId;
+              if(!mapAlreadyAddedToDamageTargets?.[playerSessionId]){
+                targetsToDamage.push(relevantHitTargets[i]);
+                mapAlreadyAddedToDamageTargets[playerSessionId] = true;
+              }
+            }
+          }
+
+          if(targetsToDamage.length > 0){
+
+            for(let i = 0; i< targetsToDamage.length; i++){
+              
+              let casterPlayerSessionId = proj.ownerPlayerSessionId;
+              let receiverPlayerSessionId = targetsToDamage[i].hitReceiverSessionId;
+              if(minimalDebug){
+                console.log(` Result: 💥 Player ${casterPlayerSessionId} hit ${receiverPlayerSessionId} with skill ${proj.skillIdentifier}`);
+              }
+             
+            }
+          }
+          
         }
 
       }
