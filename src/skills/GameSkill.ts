@@ -19,6 +19,9 @@ export class GameSkill extends Schema  {
       @type("number") projectileWidth: number;
       @type("number") projectileHeight: number;
 
+      //throwable specific
+      @type("number") AOERadius: number;
+
       constructor() {
             super();
             this.skillIdentifier = ""; // default to empty string
@@ -32,5 +35,8 @@ export class GameSkill extends Schema  {
             this.projectileSpeed = 0.7; //default
             this.projectileWidth = 0.312;
             this.projectileHeight = 0.312;
+
+            //throwable defaults
+            this.AOERadius = 0;
       }
 }

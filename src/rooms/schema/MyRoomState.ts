@@ -31,6 +31,17 @@ export class ProjectileProperties extends Schema {
   @type("number") projectileHeight:number;
 
   @type("number") maxDistance:number;
+
+  @type("number") AOERadius:number;
+  
+}
+
+export class WhatWasHit{
+  hitReceiverType: null | 'PLAYER' | 'GROUND' | 'OBSTACLE';
+  hitReceiverSessionId?: string;
+  hitCoordinatesX:number;
+  hitCoordinatesY:number;
+  hitCoordinatesZ:number;
 }
 export class Projectile extends Schema {
 

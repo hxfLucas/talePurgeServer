@@ -1,5 +1,5 @@
 import { Room, Client } from "@colyseus/core";
-import { MyRoomState, Projectile, ProjectileProperties } from "./schema/MyRoomState";
+import { MyRoomState, Projectile, ProjectileProperties, WhatWasHit } from "./schema/MyRoomState";
 import { Player } from "./schema/MyRoomState";
 import { BASE_MOVING_SPEED } from "../constants";
 import { FlarisMap } from "../maps/Map/FlarisMap";
@@ -19,6 +19,7 @@ export class MyRoom extends Room<MyRoomState> {
 
 
   shootProjectile(projectile:Projectile) {
+    
     const id = "prj_" + this.clock.elapsedTime.toString() + "_" + Math.random(); // unique enough
     projectile.uniqueSessionId = id;
     this.state.projectiles.set(id, projectile);
@@ -58,11 +59,16 @@ export class MyRoom extends Room<MyRoomState> {
     return true;
   }
   
+
   checkProjectileCollisions(
     proj: Projectile,
     projectileWidth: number,
     projectileHeight: number
-  ): string | null {
+  ): WhatWasHit[] | null {
+
+    let arrWhatWasHit:WhatWasHit[] = [];
+    
+
     // Loop through all players
     for (const [sessionId, player] of this.state.players) {
       // Skip owner (so projectiles don’t immediately collide with caster)
@@ -99,11 +105,28 @@ export class MyRoom extends Room<MyRoomState> {
       const overlapZ = projMinZ <= playerMaxZ && projMaxZ >= playerMinZ;
   
       if (overlapX && overlapY && overlapZ) {
-        return sessionId; // return the hit player’s ID
+        let whatWasHit = new WhatWasHit();
+        whatWasHit.hitReceiverSessionId = sessionId;
+        whatWasHit.hitReceiverType = "PLAYER";
+        whatWasHit.hitCoordinatesX = proj.x;
+        whatWasHit.hitCoordinatesY = proj.y;
+        whatWasHit.hitCoordinatesZ = proj.z;
+        arrWhatWasHit.push(whatWasHit);
+        
       }
     }
+    
+    //check if hit the ground
+    if(proj.y <= proj.castedFromGroundY){
+      let whatWasHit = new WhatWasHit();
+      whatWasHit.hitReceiverType = "GROUND";
+      whatWasHit.hitCoordinatesX = proj.x;
+      whatWasHit.hitCoordinatesY = proj.y;
+      whatWasHit.hitCoordinatesZ = proj.z;
+      arrWhatWasHit.push(whatWasHit);
+    }
   
-    return null;
+    return arrWhatWasHit;
   }
   
   updateProjectiles(deltaTime: number) {
@@ -133,58 +156,188 @@ export class MyRoom extends Room<MyRoomState> {
           proj.z += dz;
           proj.traveled += speed;
       }else if(skillData.skillType === "THROWABLE"){
-          // horizontal vector to target (computed once ideally)
-          const startX = proj.startX;
-          const startZ = proj.startZ;
-          const targetX = proj.targetX;
-          const targetZ = proj.targetZ;
-
-          // total horizontal distance (start -> target)
-          const totalHorizontalDist = Math.sqrt((targetX - startX)**2 + (targetZ - startZ)**2);
-
-          // horizontal direction normalized
-          const dirX = (targetX - startX) / totalHorizontalDist;
-          const dirZ = (targetZ - startZ) / totalHorizontalDist;
-
-          // move horizontally
-          const moveDist = Math.min(speed, totalHorizontalDist - proj.traveled);
-          proj.x += dirX * moveDist;
-          proj.z += dirZ * moveDist;
-          proj.traveled += moveDist;
-
-          // calculate proportion of horizontal progress
-          const t = Math.min(proj.traveled / totalHorizontalDist, 1);
-
-          // compute parabolic Y
-          const startHeight = proj.startY;
-          const groundY = proj.castedFromGroundY ?? 0;
-          const peakHeight = totalHorizontalDist * 0.15; // tweakable
-
-          proj.y = (1 - t) * startHeight + t * groundY + 4 * peakHeight * t * (1 - t);
+        const startX = proj.startX;
+        const startZ = proj.startZ;
+        const targetX = proj.targetX;
+        const targetZ = proj.targetZ;
+      
+        // horizontal distance to target
+        const totalHorizontalDist = Math.sqrt(
+          (targetX - startX) ** 2 + (targetZ - startZ) ** 2
+        );
+      
+        // clamp to maxDistance
+        const effectiveDist = Math.min(totalHorizontalDist, proj.projectileProperties.maxDistance);
+      
+        // normalized direction
+        const dirX = (targetX - startX) / totalHorizontalDist;
+        const dirZ = (targetZ - startZ) / totalHorizontalDist;
+      
+        // movement per tick, capped
+        const moveDist = Math.min(speed, effectiveDist - proj.traveled);
+        proj.x += dirX * moveDist;
+        proj.z += dirZ * moveDist;
+        proj.traveled += moveDist;
+      
+        // normalized progress (0 → 1)
+        const t = Math.min(proj.traveled / effectiveDist, 1);
+      
+        // parabolic Y
+        const startHeight = proj.startY;
+        const groundY = proj.castedFromGroundY ?? 0;
+        const peakHeight = effectiveDist * 0.15; // same scaling as client
+      
+        proj.y =
+          (1 - t) * startHeight +
+          t * groundY +
+          4 * peakHeight * t * (1 - t);
       }
 
-
-  
-      // --- Check collisions (AABB vs player) ---
-      const hitPlayerId = this.checkProjectileCollisions(
+      //the collisions of the actual projectile only
+      let arrWhatWasHit: WhatWasHit[] | null = this.checkProjectileCollisions(
         proj,
         proj.projectileProperties.projectileWidth,
         proj.projectileProperties.projectileHeight
       );
-  
-      if (hitPlayerId) {
-        console.log(`💥 Projectile ${id} HIT player ${hitPlayerId} with skill ${proj.skillIdentifier}`);
-        toDelete.push(id);
-        continue; // no need to check distance if it already hit
+
+   
+      let wasSomethingRelevantHit = false;
+
+      let shouldDeleteFromMemory = false;
+
+
+      if(arrWhatWasHit.length > 0){
+        
+        for(let i = 0; i<arrWhatWasHit.length; i++){
+          let whatWasHit:WhatWasHit = arrWhatWasHit[i];
+          // --- Check collisions (AABB vs player) ---
+          const hitPlayerId = whatWasHit?.hitReceiverType === "PLAYER" && whatWasHit?.hitReceiverSessionId ? whatWasHit.hitReceiverSessionId : null;
+          if (hitPlayerId) {
+            wasSomethingRelevantHit = true;
+            shouldDeleteFromMemory = true;
+            console.log(`💥 Projectile ${id} HIT player ${hitPlayerId} with skill ${proj.skillIdentifier}`);
+           
+          
+          }else if(whatWasHit.hitReceiverType === "GROUND"){
+            wasSomethingRelevantHit = true;
+            shouldDeleteFromMemory = true;
+          
+            console.log(`❌ Projectile ${id} hit the ground (target position < max)`);
+          }
+          
+        }
+
+     
       }
-  
-      // --- Max distance check ---
-      if (proj.traveled >= proj.projectileProperties.maxDistance) {
-        console.log(`❌ Projectile ${id} expired (max distance)`);
+
+
+      if(!wasSomethingRelevantHit){
+        //nothing relevant was hit
+        if (proj.traveled >= proj.projectileProperties.maxDistance) { 
+          // --- Max distance check ---
+          if(skillData.skillType === "THROWABLE"){
+
+          }else{
+            console.log(`❌ Projectile ${id} expired (max distance)`);
+          }
+
+         
+          console.log(`❌ Projectile ${id} hit the ground (max distance)`);
+          if(skillData.AOERadius > 0){
+            let whatWasHit = new WhatWasHit();
+            whatWasHit.hitReceiverType = "GROUND";
+            whatWasHit.hitReceiverSessionId = null;
+            whatWasHit.hitCoordinatesX = proj.x;
+            whatWasHit.hitCoordinatesY = proj.y;
+            whatWasHit.hitCoordinatesZ = proj.z;
+            arrWhatWasHit.push(whatWasHit);
+          }
+
+          
+          toDelete.push(id);
+        }
+      }
+
+
+      if(shouldDeleteFromMemory){
+        //delete it from memory
         toDelete.push(id);
       }
+
+
+               
+      if(arrWhatWasHit.length > 0){ //something was hit
+
+
+        //if something was hit and skill is AOE, get the first hit and from there check what was really hit so we 
+        //use logic to "take damage" etc
+        
+        //we only care about one thing that was hit as it the washit returns the position hit which is the center of the explosion
+      
+        let hasAOE = false;
+
+        if(proj.projectileProperties.AOERadius > 0){
+          console.log("HAS AOE");
+          hasAOE = true;
+        }
+        
+
+  
+        let damagableHitTargets:WhatWasHit[] = [];
+        if(!hasAOE){
+          for(let i = 0; i<arrWhatWasHit.length; i++){
+            let whatWasHit = arrWhatWasHit[i];
+            if(whatWasHit.hitReceiverType === "PLAYER"){
+              damagableHitTargets.push(whatWasHit);
+            }
+          }
+        }else if(hasAOE){
+          if(arrWhatWasHit.length > 0){
+            let spotHitCheckAoe:WhatWasHit = arrWhatWasHit[0];
+            let aoeProjectile:Projectile = proj.clone();
+            
+            aoeProjectile.x = spotHitCheckAoe.hitCoordinatesX;
+            aoeProjectile.y = spotHitCheckAoe.hitCoordinatesY;
+            aoeProjectile.z = spotHitCheckAoe.hitCoordinatesZ;
+  
+            aoeProjectile.projectileProperties.projectileHeight = proj.projectileProperties.AOERadius;
+            aoeProjectile.projectileProperties.projectileWidth = proj.projectileProperties.AOERadius;
+             
+            console.log("SHOULD CHECK AOE NOW!");
+            //HERE CREATE A NEW METHOD CALLED CHECKPROJECTILEAOECOLLISION
+            //check if something collides with the AOE radius 
+            let checkNewReceiveDmg: WhatWasHit[] | null = this.checkProjectileCollisions(
+              aoeProjectile,
+              aoeProjectile.projectileProperties.projectileWidth,
+              aoeProjectile.projectileProperties.projectileHeight
+            );
+
+            if(checkNewReceiveDmg){
+              for(let i = 0; i<checkNewReceiveDmg.length; i++){
+                if(checkNewReceiveDmg[i].hitReceiverType === "PLAYER"){
+                  let hitPlayerId = checkNewReceiveDmg[i].hitReceiverSessionId;
+                  console.log(`💥 (AOE) Projectile ${id} HIT player ${hitPlayerId} with skill ${proj.skillIdentifier}`);
+                  damagableHitTargets.push(checkNewReceiveDmg[i]);
+                }
+              }
+            }
+          }
+ 
+
+       
+        }
+
+
+        //damage logic etc
+        if(damagableHitTargets.length > 0){
+          console.log("HAS SOMETHING TO DAMAGE YES");
+        }
+
+      }
+
     }
-  
+
+    
     // Remove expired
     for (const id of toDelete) {
       this.state.projectiles.delete(id);
@@ -302,6 +455,8 @@ export class MyRoom extends Room<MyRoomState> {
       projectileProperties.projectileSpeed = skillData.projectileSpeed;
       projectileProperties.projectileWidth = skillData.projectileWidth;
       projectileProperties.maxDistance = skillData.maxDistance;
+
+      projectileProperties.AOERadius = skillData.AOERadius;
 
       projectile.projectileProperties = projectileProperties;
 

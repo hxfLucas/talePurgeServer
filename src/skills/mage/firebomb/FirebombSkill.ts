@@ -15,6 +15,7 @@ export class FirebombSkill {
         this.gameSkill.castMilliseconds = 250;
         this.gameSkill.cooldownMilliseconds = 3000;
         this.gameSkill.maxDistance = 20;
+        this.gameSkill.AOERadius = 1;
         this.gameSkill.skillType = "THROWABLE";
         this.gameSkill.requiresClassIdentifier = GameDataPlayerClassIdentifiersHelper().getMageClassIdentifier()
     }
