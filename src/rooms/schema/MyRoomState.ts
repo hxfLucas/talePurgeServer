@@ -29,6 +29,8 @@ export class ProjectileProperties extends Schema {
   @type("number") projectileSpeed:number;
   @type("number") projectileWidth:number;
   @type("number") projectileHeight:number;
+
+  @type("number") maxDistance:number;
 }
 export class Projectile extends Schema {
   //todo ignore this startX Y Z and target and get it from player pos in the server side.
@@ -41,11 +43,17 @@ export class Projectile extends Schema {
   @type("number") targetY: number;
   @type("number") targetZ: number;
 
+  //cur pos
+  @type("number") x: number;
+  @type("number") y: number;
+  @type("number") z: number;
 
 
   @type("number") dirX: number;
   @type("number") dirY: number;
   @type("number") dirZ: number;
+
+  @type("number") traveled: number = 0;
 
   @type("string") skillIdentifier: string;
   @type("string") ownerPlayerSessionId: string;

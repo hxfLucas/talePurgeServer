@@ -30,7 +30,7 @@ export class GameSkill extends Schema  {
 
             //projectile defualts
             this.projectileSpeed = 0.7; //default
-            this.projectileWidth = 0.008;
-            this.projectileHeight = 0.008;
+            this.projectileWidth = 0.012;
+            this.projectileHeight = 0.012;
       }
 }

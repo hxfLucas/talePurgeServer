@@ -58,7 +58,98 @@ export class MyRoom extends Room<MyRoomState> {
     return true;
   }
   
-
+  checkProjectileCollisions(
+    proj: Projectile,
+    projectileWidth: number,
+    projectileHeight: number
+  ): string | null {
+    // Loop through all players
+    for (const [sessionId, player] of this.state.players) {
+      // Skip owner (so projectiles don’t immediately collide with caster)
+      if (sessionId === proj.ownerPlayerSessionId) continue;
+  
+      const playerHitboxWidth = this.state.gameData.gameDataGlobal.playerHitboxWidth;
+      const playerHitboxHeight = this.state.gameData.gameDataGlobal.playerHitboxHeight;
+  
+      // Half sizes for AABB
+      const halfPlayerW = playerHitboxWidth / 2;
+      const halfPlayerH = playerHitboxHeight / 2;
+      const halfProjW = projectileWidth / 2;
+      const halfProjH = projectileHeight / 2;
+  
+      // Player bounds
+      const playerMinX = player.x - halfPlayerW;
+      const playerMaxX = player.x + halfPlayerW;
+      const playerMinY = player.y - halfPlayerH;
+      const playerMaxY = player.y + halfPlayerH;
+      const playerMinZ = player.z - halfPlayerW;
+      const playerMaxZ = player.z + halfPlayerW;
+  
+      // Projectile bounds
+      const projMinX = proj.x - halfProjW;
+      const projMaxX = proj.x + halfProjW;
+      const projMinY = proj.y - halfProjH;
+      const projMaxY = proj.y + halfProjH;
+      const projMinZ = proj.z - halfProjW;
+      const projMaxZ = proj.z + halfProjW;
+  
+      // Check overlap
+      const overlapX = projMinX <= playerMaxX && projMaxX >= playerMinX;
+      const overlapY = projMinY <= playerMaxY && projMaxY >= playerMinY;
+      const overlapZ = projMinZ <= playerMaxZ && projMaxZ >= playerMinZ;
+  
+      if (overlapX && overlapY && overlapZ) {
+        return sessionId; // return the hit player’s ID
+      }
+    }
+  
+    return null;
+  }
+  
+  updateProjectiles(deltaTime: number) {
+    const toDelete: string[] = [];
+  
+    for (const [id, proj] of this.state.projectiles) {
+      const speed = proj.projectileProperties.projectileSpeed;
+  
+      // Normalize dir
+      const len = Math.sqrt(proj.dirX*proj.dirX + proj.dirY*proj.dirY + proj.dirZ*proj.dirZ) || 1;
+      const dx = (proj.dirX / len) * speed;
+      const dy = (proj.dirY / len) * speed;
+      const dz = (proj.dirZ / len) * speed;
+  
+      // Move
+      proj.x += dx;
+      proj.y += dy;
+      proj.z += dz;
+      proj.traveled += speed;
+  
+      // --- Check collisions (AABB vs player) ---
+      const hitPlayerId = this.checkProjectileCollisions(
+        proj,
+        proj.projectileProperties.projectileWidth,
+        proj.projectileProperties.projectileHeight
+      );
+  
+      if (hitPlayerId) {
+        console.log(`💥 Projectile ${id} HIT player ${hitPlayerId} with skill ${proj.skillIdentifier}`);
+        toDelete.push(id);
+        continue; // no need to check distance if it already hit
+      }
+  
+      // --- Max distance check ---
+      if (proj.traveled >= proj.projectileProperties.maxDistance) {
+        console.log(`❌ Projectile ${id} expired (max distance)`);
+        toDelete.push(id);
+      }
+    }
+  
+    // Remove expired
+    for (const id of toDelete) {
+      this.state.projectiles.delete(id);
+    }
+  }
+  
   fixedTick(deltaTime:number){
 
 
@@ -98,6 +189,8 @@ export class MyRoom extends Room<MyRoomState> {
         }
     });
 
+
+    this.updateProjectiles(deltaTime);
   }
   onCreate (options: any) {
 
@@ -125,11 +218,10 @@ export class MyRoom extends Room<MyRoomState> {
     this.onMessage("myPlayer/shoot", (client, message) => {
       const player = this.state.players.get(client.sessionId);
       if (!player) return;
-      console.log("PLAYER IS SHOOTING ",message);
-  
-      // message: { dir: { x, y, z }, type: "SHOOTABLE" | "THROWABLE", skill: string }
 
+      //console.log("PLAYER IS SHOOTING ",message);
   
+
       let projectile = new Projectile();
       projectile.startX = player.x;//message.startX;
       //shoots from a certain altitude
@@ -144,20 +236,30 @@ export class MyRoom extends Room<MyRoomState> {
       projectile.dirY = message.dirY;
       projectile.dirZ = message.dirZ;
 
+
+      projectile.x = projectile.startX;
+      projectile.y = projectile.startY;
+      projectile.z = projectile.startZ;
+
+      projectile.traveled = 0;
+
       projectile.skillIdentifier = message.skillIdentifier;
 
       projectile.ownerPlayerSessionId = client.sessionId;
 
-
+    
       let skillData = this.state.gameData.gameSkills.get(projectile.skillIdentifier);
+   
       if(!skillData){
         return;
       }
+      
       let projectileProperties = new ProjectileProperties();
       projectileProperties.projectileHeight = skillData.projectileHeight;
       projectileProperties.projectileSpeed = skillData.projectileSpeed;
       projectileProperties.projectileWidth = skillData.projectileWidth;
-      
+      projectileProperties.maxDistance = skillData.maxDistance;
+
       projectile.projectileProperties = projectileProperties;
 
       this.shootProjectile(projectile);
