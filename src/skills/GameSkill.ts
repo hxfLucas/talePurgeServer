@@ -16,6 +16,8 @@ export class GameSkill extends Schema  {
 
       //projectile specific
       @type("number") projectileSpeed: number;
+      @type("number") projectileWidth: number;
+      @type("number") projectileHeight: number;
 
       constructor() {
             super();
@@ -26,6 +28,9 @@ export class GameSkill extends Schema  {
             this.requiresClassIdentifier = null; // default to null
             this.skillType = 'MELEE';
 
+            //projectile defualts
             this.projectileSpeed = 0.7; //default
+            this.projectileWidth = 0.008;
+            this.projectileHeight = 0.008;
       }
 }
