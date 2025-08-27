@@ -111,18 +111,49 @@ export class MyRoom extends Room<MyRoomState> {
   
     for (const [id, proj] of this.state.projectiles) {
       const speed = proj.projectileProperties.projectileSpeed;
-  
+    
+
+      let projSkillIdentifier = proj.skillIdentifier;
+      
+      let skillData = this.state.gameData.gameSkills.get(projSkillIdentifier);
+      if(!skillData){
+        continue;
+      }
       // Normalize dir
       const len = Math.sqrt(proj.dirX*proj.dirX + proj.dirY*proj.dirY + proj.dirZ*proj.dirZ) || 1;
       const dx = (proj.dirX / len) * speed;
       const dy = (proj.dirY / len) * speed;
       const dz = (proj.dirZ / len) * speed;
+
+      if(skillData.skillType === "SHOOTABLE"){
   
-      // Move
+          // Move
+          proj.x += dx;
+          proj.y += dy;
+          proj.z += dz;
+          proj.traveled += speed;
+      }else if(skillData.skillType === "THROWABLE"){
+              // Move horizontally (XZ)
       proj.x += dx;
-      proj.y += dy;
       proj.z += dz;
       proj.traveled += speed;
+
+      // Arc calculation (parabolic)
+      const startHeight = proj.startY;
+      const groundY = proj.castedFromGroundY ?? 0;
+      const startFallDistance = 0.002; //todo move to skilldata
+
+      if (proj.traveled >= startFallDistance) {
+        // scale peak height with actual throw distance (mimic client logic)
+        const peakScale = 0.15; // tweakable
+        const peakHeight = skillData.maxDistance * peakScale;
+
+        const t = proj.traveled / skillData.maxDistance;
+        proj.y = (1 - t) * startHeight + t * groundY + 4 * peakHeight * t * (1 - t);
+      }
+      }
+
+
   
       // --- Check collisions (AABB vs player) ---
       const hitPlayerId = this.checkProjectileCollisions(
@@ -227,6 +258,8 @@ export class MyRoom extends Room<MyRoomState> {
       //shoots from a certain altitude
       projectile.startY = player.yGroundRelative +  this.state.gameData.gameDataGlobal.defaultPlayerShootStartPositionOffsetFromGroundY;//parseFloat(process.env.PLAYER_SHOOT_START_POSITION_OFFSET_FROM_GROUND_Y);//message.startY;
       projectile.startZ = player.z;//message.startZ;
+
+      projectile.castedFromGroundY = player.yGroundRelative;
 
       projectile.targetX = message.targetX;
       projectile.targetY = message.targetY;

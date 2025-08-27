@@ -53,6 +53,8 @@ export class Projectile extends Schema {
   @type("number") dirY: number;
   @type("number") dirZ: number;
 
+  @type("number") castedFromGroundY: number;
+
   @type("number") traveled: number = 0;
 
   @type("string") skillIdentifier: string;
