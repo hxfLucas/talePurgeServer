@@ -24,6 +24,29 @@ export class GameData extends Schema {
   
 }
 
+export class Projectile extends Schema {
+  //todo ignore this startX Y Z and target and get it from player pos in the server side.
+  //todo implement
+  @type("number") startX: number;
+  @type("number") startY: number;
+  @type("number") startZ: number;
+
+  @type("number") targetX: number;
+  @type("number") targetY: number;
+  @type("number") targetZ: number;
+
+
+
+  @type("number") dirX: number;
+  @type("number") dirY: number;
+  @type("number") dirZ: number;
+
+  @type("string") skillIdentifier: string;
+  @type("string") ownerPlayerSessionId: string;
+
+
+}
+
 export class Player extends Schema {
 
   @type("string") playerSessionId: string;
@@ -52,6 +75,9 @@ export class MyRoomState extends Schema {
 
   @type("string") mySynchronizedProperty: string = "Hello world";
   @type({ map: Player }) players = new MapSchema<Player>();
+  
+  @type({ map: Projectile }) projectiles = new MapSchema<Projectile>();
+
   @type(GameMap) mapData = new GameMap();
   @type(GameData) gameData = new GameData();
 }

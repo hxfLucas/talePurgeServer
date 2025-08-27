@@ -1,5 +1,5 @@
 import { Room, Client } from "@colyseus/core";
-import { MyRoomState } from "./schema/MyRoomState";
+import { MyRoomState, Projectile } from "./schema/MyRoomState";
 import { Player } from "./schema/MyRoomState";
 import { BASE_MOVING_SPEED } from "../constants";
 import { FlarisMap } from "../maps/Map/FlarisMap";
@@ -16,6 +16,13 @@ export class MyRoom extends Room<MyRoomState> {
   state = new MyRoomState();
   elapsedTime = 0;
   fixedTimeStep = 1000 / 60;
+
+
+  shootProjectile(projectile:Projectile) {
+    const id = this.clock.elapsedTime.toString() + "-" + Math.random(); // unique enough
+  
+    this.state.projectiles.set(id, projectile);
+  }
 
   isValidMovement(player: Player, dx: number, dz: number) {
     const velocity = player?.movingSpeed ?? BASE_MOVING_SPEED;
@@ -109,11 +116,38 @@ export class MyRoom extends Room<MyRoomState> {
     this.onMessage("myPlayer/move", (client, message) => {
      // get reference to the player who sent the message
       const player = this.state.players.get(client.sessionId);
-
+    
       // enqueue input to user input buffer.
       player.inputQueue.push(message);
 
     });
+
+    this.onMessage("myPlayer/shoot", (client, message) => {
+      const player = this.state.players.get(client.sessionId);
+      if (!player) return;
+      console.log("PLAYER IS SHOOTING ",message);
+      // message: { dir: { x, y, z }, type: "SHOOTABLE" | "THROWABLE", skill: string }
+
+      let projectile = new Projectile();
+      projectile.startX = message.startX;
+      projectile.startY = message.startY;
+      projectile.startZ = message.startZ;
+
+      projectile.targetX = message.targetX;
+      projectile.targetY = message.targetY;
+      projectile.targetZ = message.targetZ;
+
+      projectile.dirX = message.dirX;
+      projectile.dirY = message.dirY;
+      projectile.dirZ = message.dirZ;
+
+      projectile.skillIdentifier = message.skillIdentifier;
+
+      projectile.ownerPlayerSessionId = client.sessionId;
+      
+      this.shootProjectile(projectile);
+ 
+     });
 
 
     let elapsedTime = 0;
