@@ -16,7 +16,8 @@ export class FireballSkill {
         this.gameSkill.castMilliseconds = 250;
         this.gameSkill.cooldownMilliseconds = 500;
         this.gameSkill.maxDistance = 10;
-        this.gameSkill.skillType = "SHOOTABLE";
+        this.gameSkill.projectileSpeed = 0.2;
+        this.gameSkill.skillType = "THROWABLE";
         this.gameSkill.requiresClassIdentifier = GameDataPlayerClassIdentifiersHelper().getMageClassIdentifier();
     }
 

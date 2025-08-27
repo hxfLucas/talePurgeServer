@@ -33,6 +33,8 @@ export class ProjectileProperties extends Schema {
   @type("number") maxDistance:number;
 }
 export class Projectile extends Schema {
+
+  @type("string") uniqueSessionId: string;
   //todo ignore this startX Y Z and target and get it from player pos in the server side.
   //todo implement
   @type("number") startX: number;

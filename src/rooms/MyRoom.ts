@@ -19,8 +19,8 @@ export class MyRoom extends Room<MyRoomState> {
 
 
   shootProjectile(projectile:Projectile) {
-    const id = this.clock.elapsedTime.toString() + "-" + Math.random(); // unique enough
-  
+    const id = "prj_" + this.clock.elapsedTime.toString() + "_" + Math.random(); // unique enough
+    projectile.uniqueSessionId = id;
     this.state.projectiles.set(id, projectile);
   }
 
@@ -133,24 +133,34 @@ export class MyRoom extends Room<MyRoomState> {
           proj.z += dz;
           proj.traveled += speed;
       }else if(skillData.skillType === "THROWABLE"){
-              // Move horizontally (XZ)
-      proj.x += dx;
-      proj.z += dz;
-      proj.traveled += speed;
+          // horizontal vector to target (computed once ideally)
+          const startX = proj.startX;
+          const startZ = proj.startZ;
+          const targetX = proj.targetX;
+          const targetZ = proj.targetZ;
 
-      // Arc calculation (parabolic)
-      const startHeight = proj.startY;
-      const groundY = proj.castedFromGroundY ?? 0;
-      const startFallDistance = 0.002; //todo move to skilldata
+          // total horizontal distance (start -> target)
+          const totalHorizontalDist = Math.sqrt((targetX - startX)**2 + (targetZ - startZ)**2);
 
-      if (proj.traveled >= startFallDistance) {
-        // scale peak height with actual throw distance (mimic client logic)
-        const peakScale = 0.15; // tweakable
-        const peakHeight = skillData.maxDistance * peakScale;
+          // horizontal direction normalized
+          const dirX = (targetX - startX) / totalHorizontalDist;
+          const dirZ = (targetZ - startZ) / totalHorizontalDist;
 
-        const t = proj.traveled / skillData.maxDistance;
-        proj.y = (1 - t) * startHeight + t * groundY + 4 * peakHeight * t * (1 - t);
-      }
+          // move horizontally
+          const moveDist = Math.min(speed, totalHorizontalDist - proj.traveled);
+          proj.x += dirX * moveDist;
+          proj.z += dirZ * moveDist;
+          proj.traveled += moveDist;
+
+          // calculate proportion of horizontal progress
+          const t = Math.min(proj.traveled / totalHorizontalDist, 1);
+
+          // compute parabolic Y
+          const startHeight = proj.startY;
+          const groundY = proj.castedFromGroundY ?? 0;
+          const peakHeight = totalHorizontalDist * 0.15; // tweakable
+
+          proj.y = (1 - t) * startHeight + t * groundY + 4 * peakHeight * t * (1 - t);
       }
 
 
@@ -315,7 +325,6 @@ export class MyRoom extends Room<MyRoomState> {
   onJoin (client: Client, options: any) {
     console.log(client.sessionId, "joined!");
  
-    console.log("THE client: ",client);
 
 
     // create Player instance
