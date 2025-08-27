@@ -24,6 +24,12 @@ export class GameData extends Schema {
   
 }
 
+//only needed server side because client side we alraedy get it from the metadata
+export class ProjectileProperties extends Schema {
+  @type("number") projectileSpeed:number;
+  @type("number") projectileWidth:number;
+  @type("number") projectileHeight:number;
+}
 export class Projectile extends Schema {
   //todo ignore this startX Y Z and target and get it from player pos in the server side.
   //todo implement
@@ -45,6 +51,8 @@ export class Projectile extends Schema {
   @type("string") ownerPlayerSessionId: string;
 
 
+  @type(ProjectileProperties) projectileProperties: ProjectileProperties;
+
 }
 
 export class Player extends Schema {
@@ -55,6 +63,8 @@ export class Player extends Schema {
   @type("number") x: number;
   @type("number") y: number;
   @type("number") z: number;
+
+  @type("number") yGroundRelative:number; //the feet of the player
 
   @type("number") lastSkillSlotSelected: number;
 

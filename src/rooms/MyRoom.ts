@@ -1,5 +1,5 @@
 import { Room, Client } from "@colyseus/core";
-import { MyRoomState, Projectile } from "./schema/MyRoomState";
+import { MyRoomState, Projectile, ProjectileProperties } from "./schema/MyRoomState";
 import { Player } from "./schema/MyRoomState";
 import { BASE_MOVING_SPEED } from "../constants";
 import { FlarisMap } from "../maps/Map/FlarisMap";
@@ -126,12 +126,15 @@ export class MyRoom extends Room<MyRoomState> {
       const player = this.state.players.get(client.sessionId);
       if (!player) return;
       console.log("PLAYER IS SHOOTING ",message);
+  
       // message: { dir: { x, y, z }, type: "SHOOTABLE" | "THROWABLE", skill: string }
 
+  
       let projectile = new Projectile();
-      projectile.startX = message.startX;
-      projectile.startY = message.startY;
-      projectile.startZ = message.startZ;
+      projectile.startX = player.x;//message.startX;
+      //shoots from a certain altitude
+      projectile.startY = player.yGroundRelative +  this.state.gameData.gameDataGlobal.defaultPlayerShootStartPositionOffsetFromGroundY;//parseFloat(process.env.PLAYER_SHOOT_START_POSITION_OFFSET_FROM_GROUND_Y);//message.startY;
+      projectile.startZ = player.z;//message.startZ;
 
       projectile.targetX = message.targetX;
       projectile.targetY = message.targetY;
@@ -144,7 +147,19 @@ export class MyRoom extends Room<MyRoomState> {
       projectile.skillIdentifier = message.skillIdentifier;
 
       projectile.ownerPlayerSessionId = client.sessionId;
+
+
+      let skillData = this.state.gameData.gameSkills.get(projectile.skillIdentifier);
+      if(!skillData){
+        return;
+      }
+      let projectileProperties = new ProjectileProperties();
+      projectileProperties.projectileHeight = skillData.projectileHeight;
+      projectileProperties.projectileSpeed = skillData.projectileSpeed;
+      projectileProperties.projectileWidth = skillData.projectileWidth;
       
+      projectile.projectileProperties = projectileProperties;
+
       this.shootProjectile(projectile);
  
      });
@@ -178,6 +193,8 @@ export class MyRoom extends Room<MyRoomState> {
     player.x = -14.19;//(Math.random() * mapWidth);
     player.y = 0.65; //(Math.random() * mapHeight);
     player.z = 0;
+
+    player.yGroundRelative = 0; //0 ground
 
     player.movingSpeed = BASE_MOVING_SPEED;
 
