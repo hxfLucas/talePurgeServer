@@ -157,8 +157,33 @@ export class MyRoom extends Room<MyRoomState> {
   updateFieldTickEffects(){
 
     const toDelete:string[] = [];
-    for (const [id, fieldTickEffects] of this.state.fieldTickEffects) {
+    for (const [id, fieldTickEffect] of this.state.fieldTickEffects) {
+      //check if anythng collides with it 
 
+      //TODO create new method instead of checkprojectile because its not  really a projectile ? or take in consideration the "direction"
+      //OR make the area to be spawned in the direction aiming and calculate as if it was a projectile but make new method
+      let fakeProjectile = new Projectile();
+      fakeProjectile.x = fieldTickEffect.x;
+      fakeProjectile.y = fieldTickEffect.y;
+      fakeProjectile.z = fieldTickEffect.z;
+      fakeProjectile.ownerPlayerSessionId = fieldTickEffect?.ownerPlayerSessionId;
+
+      
+      let arrWhatWasHit: WhatWasHit[] | null = this.checkProjectileCollisions(
+        fakeProjectile,
+        fieldTickEffect.widthEffectArea,
+        fieldTickEffect.heightEffectArea
+      );
+   
+      if(arrWhatWasHit){
+        for(let i = 0; i<arrWhatWasHit.length; i++){
+
+          if(arrWhatWasHit[i].hitReceiverType === "PLAYER"){
+            console.log(` DamageTickEffect : 💥 Player ${fieldTickEffect.ownerPlayerSessionId} hit ${arrWhatWasHit[i].hitReceiverSessionId} with skill ${fieldTickEffect.originSkillIdentifier}`);
+          }
+          
+        }
+      }
       toDelete.push(id);
     }
 
@@ -384,6 +409,7 @@ export class MyRoom extends Room<MyRoomState> {
                 newFieldTickEffect.z = spotHitCheckAoe.hitCoordinatesZ;
                 newFieldTickEffect.widthEffectArea = skillData.hitAOEDamagingFieldWidth;
                 newFieldTickEffect.heightEffectArea = skillData.hitAOEDamagingFieldHeight;
+                newFieldTickEffect.ownerPlayerSessionId = aoeProjectile.ownerPlayerSessionId;
 
                 this.spawnFieldTickEffect(newFieldTickEffect); //spawn first tick right away
 
@@ -458,7 +484,7 @@ export class MyRoom extends Room<MyRoomState> {
               let casterPlayerSessionId = proj.ownerPlayerSessionId;
               let receiverPlayerSessionId = targetsToDamage[i].hitReceiverSessionId;
               if(minimalDebug){
-                console.log(` Result: 💥 Player ${casterPlayerSessionId} hit ${receiverPlayerSessionId} with skill ${proj.skillIdentifier}`);
+                console.log(` AOE + projectile Result: 💥 Player ${casterPlayerSessionId} hit ${receiverPlayerSessionId} with skill ${proj.skillIdentifier}`);
               }
              
             }

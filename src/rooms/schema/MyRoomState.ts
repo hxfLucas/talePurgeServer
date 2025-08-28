@@ -82,6 +82,7 @@ export class FieldTickEffect{
   
     uniqueSessionId: string;
     originSkillIdentifier: string;
+    ownerPlayerSessionId?:string;
     x: number;
     y: number;
     z: number;
