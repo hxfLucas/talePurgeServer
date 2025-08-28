@@ -22,6 +22,9 @@ export class GameSkill extends Schema  {
       //throwable specific
       @type("number") AOERadius: number;
 
+      @type("number") AOEDamagingFieldTicks: number;
+      @type("number") AOEDamagingFielDurationMilliseconds: number;
+
       constructor() {
             super();
             this.skillIdentifier = ""; // default to empty string

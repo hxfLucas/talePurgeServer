@@ -537,7 +537,13 @@ export class MyRoom extends Room<MyRoomState> {
     let playerInputSettings = new PlayerInputSettings();
     playerInputSettings.keyboardCodeSkillOne = 'Digit1';
     playerInputSettings.keyboardKeySkillOne = '1';
+
+    playerInputSettings.keyboardCodeAlternativeCameraZoomIn = 'ArrowUp';
+    playerInputSettings.keyboardKeyAlternativeCameraZoomIn = 'arrowup';
     
+    playerInputSettings.keyboardCodeAlternativeCameraZoomOut = 'ArrowDown';
+    playerInputSettings.keyboardKeyAlternativeCameraZoomOut = 'arrowdown';
+
     player.playerInputSettings = playerInputSettings;
 
     let playerUISettings = new PlayerUISettings();
