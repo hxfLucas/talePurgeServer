@@ -20,10 +20,11 @@ export class GameSkill extends Schema  {
       @type("number") projectileHeight: number;
 
       //throwable specific
-      @type("number") AOERadius: number;
+      @type("number") hitAOERadius: number;
 
-      @type("number") AOEDamagingFieldTicks: number;
-      @type("number") AOEDamagingFielDurationMilliseconds: number;
+      @type("number") hitAOEDamagingFieldDurationMilliseconds: number;
+      @type("number") hitAOEDamagingFieldTicks: number; //if duration is 1000 milliseconds and damage  ticks is 10, then it will tick 1 time per 100 ms
+      
 
       constructor() {
             super();
@@ -40,6 +41,8 @@ export class GameSkill extends Schema  {
             this.projectileHeight = 0.312;
 
             //throwable defaults
-            this.AOERadius = 0;
+            this.hitAOERadius = 0;
+            this.hitAOEDamagingFieldDurationMilliseconds = 0;
+            this.hitAOEDamagingFieldTicks = 0;
       }
 }

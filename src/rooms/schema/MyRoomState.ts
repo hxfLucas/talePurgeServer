@@ -24,6 +24,16 @@ export class GameData extends Schema {
   
 }
 
+//temporary effects on the map
+export class AOETriggeringEffect extends Schema{
+  @type("string") skillIdentifier:number;
+  @type("number") areaWidth:number;
+  @type("number") areaHeight:number;
+  @type("number") x:number;
+  @type("number") y:number;
+  @type("number") z:number;
+}
+
 //only needed server side because client side we alraedy get it from the metadata
 export class ProjectileProperties extends Schema {
   @type("number") projectileSpeed:number;
@@ -32,7 +42,11 @@ export class ProjectileProperties extends Schema {
 
   @type("number") maxDistance:number;
 
-  @type("number") AOERadius:number;
+  @type("number") hitAOERadius:number;
+  @type("number") hitAOEDamagingFieldDurationMilliseconds:number;
+  @type("number") hitAOEDamagingFieldTicks:number;
+
+  
   
 }
 

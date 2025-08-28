@@ -244,7 +244,7 @@ export class MyRoom extends Room<MyRoomState> {
         if (proj.traveled >= proj.projectileProperties.maxDistance) { 
           // --- Max distance check ---
 
-          if(skillData.AOERadius > 0){
+          if(skillData.hitAOERadius > 0){
             
             if(verboseDebug){
               console.log(`[VERBOSE] #3a ❌ Projectile ${id} hit the ground (max distance)`);
@@ -286,7 +286,7 @@ export class MyRoom extends Room<MyRoomState> {
       
         let hasAOE = false;
 
-        if(proj.projectileProperties.AOERadius > 0){
+        if(proj.projectileProperties.hitAOERadius > 0){
           hasAOE = true;
         }
         
@@ -308,8 +308,8 @@ export class MyRoom extends Room<MyRoomState> {
             aoeProjectile.z = spotHitCheckAoe.hitCoordinatesZ;
   
             //radius = raio, portanto multiplicar por 2 para verdadeira largura e altura
-            aoeProjectile.projectileProperties.projectileHeight = proj.projectileProperties.AOERadius*2;
-            aoeProjectile.projectileProperties.projectileWidth = proj.projectileProperties.AOERadius*2;
+            aoeProjectile.projectileProperties.projectileHeight = proj.projectileProperties.hitAOERadius*2;
+            aoeProjectile.projectileProperties.projectileWidth = proj.projectileProperties.hitAOERadius*2;
 
             //HERE CREATE A NEW METHOD CALLED CHECKPROJECTILEAOECOLLISION
             //check if something collides with the AOE radius 
@@ -493,7 +493,9 @@ export class MyRoom extends Room<MyRoomState> {
       projectileProperties.projectileWidth = skillData.projectileWidth;
       projectileProperties.maxDistance = skillData.maxDistance;
 
-      projectileProperties.AOERadius = skillData.AOERadius;
+      projectileProperties.hitAOERadius = skillData.hitAOERadius;
+
+      projectileProperties.hitAOEDamagingFieldDurationMilliseconds = skillData.hitAOEDamagingFieldDurationMilliseconds;
 
       projectile.projectileProperties = projectileProperties;
 
