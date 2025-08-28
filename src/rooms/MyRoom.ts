@@ -307,8 +307,9 @@ export class MyRoom extends Room<MyRoomState> {
             aoeProjectile.y = spotHitCheckAoe.hitCoordinatesY;
             aoeProjectile.z = spotHitCheckAoe.hitCoordinatesZ;
   
-            aoeProjectile.projectileProperties.projectileHeight = proj.projectileProperties.AOERadius;
-            aoeProjectile.projectileProperties.projectileWidth = proj.projectileProperties.AOERadius;
+            //radius = raio, portanto multiplicar por 2 para verdadeira largura e altura
+            aoeProjectile.projectileProperties.projectileHeight = proj.projectileProperties.AOERadius*2;
+            aoeProjectile.projectileProperties.projectileWidth = proj.projectileProperties.AOERadius*2;
 
             //HERE CREATE A NEW METHOD CALLED CHECKPROJECTILEAOECOLLISION
             //check if something collides with the AOE radius 
