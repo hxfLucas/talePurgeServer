@@ -1,5 +1,5 @@
 import { Room, Client } from "@colyseus/core";
-import { MyRoomState, Projectile, ProjectileProperties, WhatWasHit } from "./schema/MyRoomState";
+import { FieldEffect, FieldTickEffect, MyRoomState, Projectile, ProjectileProperties, WhatWasHit } from "./schema/MyRoomState";
 import { Player } from "./schema/MyRoomState";
 import { BASE_MOVING_SPEED } from "../constants";
 import { FlarisMap } from "../maps/Map/FlarisMap";
@@ -23,6 +23,25 @@ export class MyRoom extends Room<MyRoomState> {
     const id = "prj_" + this.clock.elapsedTime.toString() + "_" + Math.random(); // unique enough
     projectile.uniqueSessionId = id;
     this.state.projectiles.set(id, projectile);
+  }
+
+
+
+  spawnFieldEffect(fieldEffect:FieldEffect){
+      
+    const id = "fieldeffect_" + this.clock.elapsedTime.toString() + "_" + Math.random(); // unique enough
+    fieldEffect.uniqueSessionId = id;
+ 
+    this.state.fieldEffects.set(id, fieldEffect);
+
+    return id;
+  }
+
+  spawnFieldTickEffect(fieldTickEffect:FieldTickEffect){
+      
+    const id = "fieldtickeffect_" + this.clock.elapsedTime.toString() + "_" + Math.random(); // unique enough
+    fieldTickEffect.uniqueSessionId = id;
+    this.state.fieldTickEffects.set(id, fieldTickEffect);
   }
 
   isValidMovement(player: Player, dx: number, dz: number) {
@@ -111,6 +130,8 @@ export class MyRoom extends Room<MyRoomState> {
         whatWasHit.hitCoordinatesX = proj.x;
         whatWasHit.hitCoordinatesY = proj.y;
         whatWasHit.hitCoordinatesZ = proj.z;
+
+        whatWasHit.yGroundCoordinates = proj.castedFromGroundY;
         arrWhatWasHit.push(whatWasHit);
         
       }
@@ -123,10 +144,29 @@ export class MyRoom extends Room<MyRoomState> {
       whatWasHit.hitCoordinatesX = proj.x;
       whatWasHit.hitCoordinatesY = proj.y;
       whatWasHit.hitCoordinatesZ = proj.z;
+      whatWasHit.yGroundCoordinates = proj.castedFromGroundY;
       arrWhatWasHit.push(whatWasHit);
     }
   
     return arrWhatWasHit;
+  }
+
+
+
+  //ticks per field
+  updateFieldTickEffects(){
+
+    const toDelete:string[] = [];
+    for (const [id, fieldTickEffects] of this.state.fieldTickEffects) {
+
+      toDelete.push(id);
+    }
+
+    // Remove already processed field effects
+    for (const id of toDelete) {
+      console.log("DELETE FTICK");
+      this.state.fieldTickEffects.delete(id);
+    }
   }
   
   updateProjectiles(deltaTime: number) {
@@ -255,6 +295,7 @@ export class MyRoom extends Room<MyRoomState> {
             whatWasHit.hitCoordinatesX = proj.x;
             whatWasHit.hitCoordinatesY = proj.y;
             whatWasHit.hitCoordinatesZ = proj.z;
+            whatWasHit.yGroundCoordinates = proj.castedFromGroundY;
             arrWhatWasHit.push(whatWasHit);
           }else{
             if(verboseDebug){
@@ -284,24 +325,79 @@ export class MyRoom extends Room<MyRoomState> {
         
         //we only care about one thing that was hit as it the washit returns the position hit which is the center of the explosion
       
-        let hasAOE = false;
+        let hasHitAOE = false;
 
         if(proj.projectileProperties.hitAOERadius > 0){
-          hasAOE = true;
+          hasHitAOE = true;
         }
         
 
         let relevantHitTargets:WhatWasHit[] = [];
   
         
-        if(!hasAOE){
+        if(!hasHitAOE){
           for(let i = 0; i<arrWhatWasHit.length; i++){
             relevantHitTargets.push(arrWhatWasHit[i]);
           }
-        }else if(hasAOE){
+        }else if(hasHitAOE){
           if(arrWhatWasHit.length > 0){
             let spotHitCheckAoe:WhatWasHit = arrWhatWasHit[0];
+            //check other possible hits on the aoe range explosion
             let aoeProjectile:Projectile = proj.clone();
+
+            //check if hit aoe will spawn another "hittable" like a burning field or healing field
+            if(skillData?.hitAOEDamagingFieldDurationMilliseconds > 0 && skillData?.hitAOEDamagingFieldTicks > 0){
+                
+                let totalDamageTicks = skillData?.hitAOEDamagingFieldTicks;
+                let millisecondsPerTick = skillData?.hitAOEDamagingFieldDurationMilliseconds / totalDamageTicks;
+                let fullFieldDuration = skillData.hitAOEDamagingFieldDurationMilliseconds;
+
+                //spawn just the field effect, for tracking when it finishes visually mostly
+
+                let newFieldEffect:FieldEffect = new FieldEffect();
+                newFieldEffect.originSkillIdentifier = skillData.skillIdentifier;
+
+                newFieldEffect.x = spotHitCheckAoe.hitCoordinatesX;
+                newFieldEffect.y = spotHitCheckAoe.yGroundCoordinates; //temp solution, eventually ray cast from hitCoordinates to ground closest collision
+                newFieldEffect.z = spotHitCheckAoe.hitCoordinatesZ;
+               
+                newFieldEffect.widthEffectArea = skillData.hitAOEDamagingFieldWidth;
+                newFieldEffect.heightEffectArea = skillData.hitAOEDamagingFieldHeight;
+
+                newFieldEffect.fieldType = "DAMAGING";
+                
+               let spawnedFieldEffectId = this.spawnFieldEffect(newFieldEffect);
+
+                setTimeout(() => {
+                  //delete the field effect after a while
+                  this.state.fieldEffects.delete(spawnedFieldEffectId);
+                },fullFieldDuration);
+
+                //spawn the field fick effects for server side tracking of when to take damage
+
+                console.log("SPAWN FIELDS TICKING EFFECTS!!");
+
+                let newFieldTickEffect:FieldTickEffect = new FieldTickEffect();
+                newFieldTickEffect.originSkillIdentifier = skillData.skillIdentifier;
+                newFieldTickEffect.x = spotHitCheckAoe.hitCoordinatesX;
+                newFieldTickEffect.y = spotHitCheckAoe.yGroundCoordinates; //temp solution, eventually ray cast from hitCoordinates to ground closest collision
+                newFieldTickEffect.z = spotHitCheckAoe.hitCoordinatesZ;
+                newFieldTickEffect.widthEffectArea = skillData.hitAOEDamagingFieldWidth;
+                newFieldTickEffect.heightEffectArea = skillData.hitAOEDamagingFieldHeight;
+
+                this.spawnFieldTickEffect(newFieldTickEffect); //spawn first tick right away
+
+                //start from 1 because the first field effect was already spawned
+                for(let i = 1; i<totalDamageTicks; i++){
+                  setTimeout(() => {
+                    this.spawnFieldTickEffect(newFieldTickEffect);
+                  }, millisecondsPerTick*i);
+                }
+
+
+            }
+
+
             
             aoeProjectile.x = spotHitCheckAoe.hitCoordinatesX;
             aoeProjectile.y = spotHitCheckAoe.hitCoordinatesY;
@@ -422,6 +518,7 @@ export class MyRoom extends Room<MyRoomState> {
 
 
     this.updateProjectiles(deltaTime);
+    this.updateFieldTickEffects();
   }
   onCreate (options: any) {
 

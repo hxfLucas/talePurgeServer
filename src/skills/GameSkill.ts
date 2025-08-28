@@ -25,6 +25,9 @@ export class GameSkill extends Schema  {
       @type("number") hitAOEDamagingFieldDurationMilliseconds: number;
       @type("number") hitAOEDamagingFieldTicks: number; //if duration is 1000 milliseconds and damage  ticks is 10, then it will tick 1 time per 100 ms
       
+      @type("number") hitAOEDamagingFieldWidth: number;
+      @type("number") hitAOEDamagingFieldHeight: number;
+      //todo later have additional damaging field spaces like a full radius, right now its pretty much a square
 
       constructor() {
             super();

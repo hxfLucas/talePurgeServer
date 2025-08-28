@@ -56,7 +56,40 @@ export class WhatWasHit{
   hitCoordinatesX:number;
   hitCoordinatesY:number;
   hitCoordinatesZ:number;
+
+  yGroundCoordinates:number;
 }
+
+/* mostly for tracking which field is active , usefull for players that were not in the room before this was casted as this is only removed after the duration expires */
+export class FieldEffect extends Schema {
+  
+  @type("string") uniqueSessionId: string;
+  @type("string") originSkillIdentifier: string;
+  @type("number") x: number;
+  @type("number") y: number;
+  @type("number") z: number;
+  
+  @type("number") heightEffectArea: number;
+  @type("number") widthEffectArea: number;
+
+  @type("string") fieldType: "DAMAGING" | "HEALING" | "JUST_VISUAL"; //mostly used to decide what animation to play on the field and the effect to hit on "players" in that area based on the originSkillIdentifier + fieldType
+
+}
+
+
+//ticks are only needed server side to calculate dmg, for the "visual effect" we use FieldEffect
+export class FieldTickEffect{
+  
+    uniqueSessionId: string;
+    originSkillIdentifier: string;
+    x: number;
+    y: number;
+    z: number;
+    
+    heightEffectArea: number;
+    widthEffectArea: number;
+}
+
 export class Projectile extends Schema {
 
   @type("string") uniqueSessionId: string;
@@ -124,6 +157,10 @@ export class MyRoomState extends Schema {
   @type({ map: Player }) players = new MapSchema<Player>();
   
   @type({ map: Projectile }) projectiles = new MapSchema<Projectile>();
+
+
+  fieldTickEffects = new Map<string, FieldTickEffect>(); //no @type to avoid broadcasting ticks to the client
+  @type({ map: FieldEffect }) fieldEffects = new MapSchema<FieldEffect>();
 
   @type(GameMap) mapData = new GameMap();
   @type(GameData) gameData = new GameData();

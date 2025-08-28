@@ -19,10 +19,12 @@ export class FireballSkill {
         this.gameSkill.projectileSpeed = 0.2;
 
         this.gameSkill.hitAOERadius = 5;
-        this.gameSkill.hitAOEDamagingFieldDurationMilliseconds = 2000;
+        this.gameSkill.hitAOEDamagingFieldDurationMilliseconds = 5000;
         this.gameSkill.hitAOEDamagingFieldTicks = 5;
+        this.gameSkill.hitAOEDamagingFieldWidth = 10;
+        this.gameSkill.hitAOEDamagingFieldHeight= 10;
 
-        this.gameSkill.skillType = "THROWABLE";
+        this.gameSkill.skillType = "SHOOTABLE";
         this.gameSkill.requiresClassIdentifier = GameDataPlayerClassIdentifiersHelper().getMageClassIdentifier();
     }
 
