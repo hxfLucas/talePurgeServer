@@ -56,7 +56,7 @@ export class ProjectileProperties extends Schema {
 export class WhatWasHit{
 
   uniqueSessionId:string;
-  hitReceiverType: null | 'PLAYER' | 'GROUND' | 'OBSTACLE';
+  hitReceiverType: null | 'PLAYER' | 'GROUND' | 'OBSTACLE' | 'NPC';
   playAnimationHit?:boolean;
   hitReceiverPlayerSessionId?: string;
   hitSenderPlayerSessionId?:string;

@@ -242,6 +242,25 @@ export class MyRoom extends Room<MyRoomState> {
     }
   }
   
+
+  sortArrayHitsByClosestToProjectile(arrayWhatWasHit:WhatWasHit[], projectile:Projectile){
+    return arrayWhatWasHit.sort((a, b) => {
+      const distanceA = Math.sqrt(
+        Math.pow(a.hitCoordinatesX - projectile.x, 2) +
+        Math.pow(a.hitCoordinatesY - projectile.y, 2) +
+        Math.pow(a.hitCoordinatesZ - projectile.z, 2)
+      );
+  
+      const distanceB = Math.sqrt(
+        Math.pow(b.hitCoordinatesX - projectile.x, 2) +
+        Math.pow(b.hitCoordinatesY - projectile.y, 2) +
+        Math.pow(b.hitCoordinatesZ - projectile.z, 2)
+      );
+  
+      return distanceA - distanceB; // smallest distance first
+    });
+  }
+
   updateProjectiles(deltaTime: number) {
 
     const minimalDebug = process.env.MINIMAL_DAMAGE_DEBUG === "true";
@@ -269,14 +288,15 @@ export class MyRoom extends Room<MyRoomState> {
       const dy = (proj.dirY / len) * speed;
       const dz = (proj.dirZ / len) * speed;
 
-      if(skillData.skillType === "SHOOTABLE"){
+      if(skillData.skillType === "PROJECTABLE_NO_GRAVITY"){
   
           // Move
           proj.x += dx;
           proj.y += dy;
           proj.z += dz;
           proj.traveled += speed;
-      }else if(skillData.skillType === "THROWABLE"){
+          
+      }else if(skillData.skillType === "PROJECTABLE_THROWABLE" || skillData.skillType === "PROJECTABLE_PROJECTILE"){
         const startX = proj.startX;
         const startZ = proj.startZ;
         const targetX = proj.targetX;
@@ -288,8 +308,8 @@ export class MyRoom extends Room<MyRoomState> {
         );
       
         // clamp to maxDistance
-        const effectiveDist = Math.min(totalHorizontalDist, proj.projectileProperties.maxDistance);
-      
+        const effectiveDist = skillData?.skillType === 'PROJECTABLE_PROJECTILE' ? proj.projectileProperties.maxDistance : Math.min(totalHorizontalDist, proj.projectileProperties.maxDistance);
+
         // normalized direction
         const dirX = (targetX - startX) / totalHorizontalDist;
         const dirZ = (targetZ - startZ) / totalHorizontalDist;
@@ -396,6 +416,8 @@ export class MyRoom extends Room<MyRoomState> {
 
           
           toDelete.push(id);
+        }else{
+          // atingiu o chao ?
         }
       }
 
@@ -426,8 +448,12 @@ export class MyRoom extends Room<MyRoomState> {
   
         
         if(!hasHitAOE){
+
+          if(arrWhatWasHit && arrWhatWasHit.length > 0){
+            arrWhatWasHit[0].playAnimationHit = true; //no aoe, direct hit, hit the target
+          }
           for(let i = 0; i<arrWhatWasHit.length; i++){
-            arrWhatWasHit[i].playAnimationHit = true;
+           
             relevantHitTargets.push(arrWhatWasHit[i]);
           }
         }else if(hasHitAOE){
@@ -513,22 +539,9 @@ export class MyRoom extends Room<MyRoomState> {
             if(checkNewReceiveDmg && checkNewReceiveDmg.length > 0){
 
               //order hits by the closest to the aoe projectile, so we will only "trigger hit effect" on the closest
-              checkNewReceiveDmg.sort((a, b) => {
-                const distanceA = Math.sqrt(
-                  Math.pow(a.hitCoordinatesX - aoeProjectile.x, 2) +
-                  Math.pow(a.hitCoordinatesY - aoeProjectile.y, 2) +
-                  Math.pow(a.hitCoordinatesZ - aoeProjectile.z, 2)
-                );
-            
-                const distanceB = Math.sqrt(
-                  Math.pow(b.hitCoordinatesX - aoeProjectile.x, 2) +
-                  Math.pow(b.hitCoordinatesY - aoeProjectile.y, 2) +
-                  Math.pow(b.hitCoordinatesZ - aoeProjectile.z, 2)
-                );
-            
-                return distanceA - distanceB; // smallest distance first
-              });
-              checkNewReceiveDmg[0].playAnimationHit = true; //only play explosion on the closest hit target
+
+              checkNewReceiveDmg = this.sortArrayHitsByClosestToProjectile(checkNewReceiveDmg, aoeProjectile);
+              checkNewReceiveDmg[0].playAnimationHit = true; //only play hit animation on the closest hit target
       
               for(let i = 0; i<checkNewReceiveDmg.length; i++){
                 if(checkNewReceiveDmg[i].hitReceiverType === "PLAYER"){
@@ -551,7 +564,7 @@ export class MyRoom extends Room<MyRoomState> {
 
         //damage logic etc
         if(relevantHitTargets.length > 0){
-      
+          
           //clean possible repeatables
           let targetsToDamage:WhatWasHit[] = [];
 
@@ -566,6 +579,8 @@ export class MyRoom extends Room<MyRoomState> {
             }
           }
 
+
+          
           if(targetsToDamage.length > 0){
 
             for(let i = 0; i< targetsToDamage.length; i++){
@@ -589,10 +604,20 @@ export class MyRoom extends Room<MyRoomState> {
               let damageTakerPlayerSessionId = receiverPlayerSessionId;
               //TODO HERE call "take damage from player"
               this.broadcastSkillHit(targetsToDamage[i]);
+              
               this.state.mapKeyProjectilePlayerHitPreventDoubleHits.set(keyProjectileHitPlayerPreventDoubleDmg, true);
              
             }
+          }else{
+
+            if(relevantHitTargets.length > 0){
+              //there are targets that are not suppose to be damaged but were HIT
+              this.sortArrayHitsByClosestToProjectile(relevantHitTargets, proj);
+              this.broadcastSkillHit(relevantHitTargets[0]);
+            }
+
           }
+          
           
         }
 

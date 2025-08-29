@@ -15,7 +15,7 @@ export class MagicPulseSkill {
         this.gameSkill.castMilliseconds = 250;
         this.gameSkill.cooldownMilliseconds = 500;
         this.gameSkill.maxDistance = 10;
-        this.gameSkill.skillType = "SHOOTABLE";
+        this.gameSkill.skillType = "PROJECTABLE_PROJECTILE";
         this.gameSkill.requiresClassIdentifier =  GameDataPlayerClassIdentifiersHelper().getMageClassIdentifier();
     }
 

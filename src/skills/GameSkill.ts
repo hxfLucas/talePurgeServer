@@ -12,7 +12,10 @@ export class GameSkill extends Schema  {
       
 
       @type("string") requiresClassIdentifier: string | null;
-      @type("string") skillType: 'MELEE' | 'THROWABLE' | 'SHOOTABLE';
+      /*
+
+      */
+      @type("string") skillType: 'MELEE' | 'PROJECTABLE_THROWABLE' | 'PROJECTABLE_PROJECTILE' | 'PROJECTABLE_NO_GRAVITY'; 
 
       //projectile specific
       @type("number") projectileSpeed: number;
@@ -49,6 +52,7 @@ export class GameSkill extends Schema  {
             this.projectileHitboxType = "SPHERE";
 
             this.projectileGoesThroughPlayers = false;
+
 
             //throwable defaults
             this.hitAOERadius = 0;

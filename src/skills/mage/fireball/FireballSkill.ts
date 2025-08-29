@@ -28,7 +28,7 @@ export class FireballSkill {
         this.gameSkill.hitAOEDamagingFieldWidth = 10;
         this.gameSkill.hitAOEDamagingFieldHeight= 5;*/
 
-        this.gameSkill.skillType = "SHOOTABLE";
+        this.gameSkill.skillType = "PROJECTABLE_PROJECTILE";
         this.gameSkill.requiresClassIdentifier = GameDataPlayerClassIdentifiersHelper().getMageClassIdentifier();
     }
 
