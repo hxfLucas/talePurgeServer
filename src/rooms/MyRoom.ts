@@ -81,33 +81,27 @@ export class MyRoom extends Room<MyRoomState> {
   builderKeyMapKeyProjectilePlayerHitPreventDoubleHits(projectileSessionId:string, playerSessionId:string){
     return projectileSessionId + "__" + playerSessionId;
   }
-
-  //bullet type is better performant comparison than checking rotated rectangles 
-  checkBulletTypeProjectileCollisions(
+  checkProjectileCollisions(
     proj: Projectile,
     projectileWidth: number,
     projectileHeight: number
-  ): WhatWasHit[] | null {
-
-    let arrWhatWasHit:WhatWasHit[] = [];
-
-
+  ): WhatWasHit[] {
+  
+    let arrWhatWasHit: WhatWasHit[] = [];
+    let projectileHitboxType = proj?.projectileProperties?.projectileHitboxType 
+      ? proj?.projectileProperties?.projectileHitboxType 
+      : "CUBOID";
+  
     // Loop through all players
     for (const [sessionId, player] of this.state.players) {
-
-
-      // Skip owner (so projectiles don’t immediately collide with caster)
       if (sessionId === proj.ownerPlayerSessionId) continue;
+      
       const playerHitboxWidth = this.state.gameData.gameDataGlobal.playerHitboxWidth;
       const playerHitboxHeight = this.state.gameData.gameDataGlobal.playerHitboxHeight;
   
-      // Half sizes for AABB
       const halfPlayerW = playerHitboxWidth / 2;
       const halfPlayerH = playerHitboxHeight / 2;
-      const halfProjW = projectileWidth / 2;
-      const halfProjH = projectileHeight / 2;
   
-      // Player bounds
       const playerMinX = player.x - halfPlayerW;
       const playerMaxX = player.x + halfPlayerW;
       const playerMinY = player.y - halfPlayerH;
@@ -115,35 +109,67 @@ export class MyRoom extends Room<MyRoomState> {
       const playerMinZ = player.z - halfPlayerW;
       const playerMaxZ = player.z + halfPlayerW;
   
-      // Projectile bounds
-      const projMinX = proj.x - halfProjW;
-      const projMaxX = proj.x + halfProjW;
-      const projMinY = proj.y - halfProjH;
-      const projMaxY = proj.y + halfProjH;
-      const projMinZ = proj.z - halfProjW;
-      const projMaxZ = proj.z + halfProjW;
+      let isColliding = false;
   
-      // Check overlap
-      const overlapX = projMinX <= playerMaxX && projMaxX >= playerMinX;
-      const overlapY = projMinY <= playerMaxY && projMaxY >= playerMinY;
-      const overlapZ = projMinZ <= playerMaxZ && projMaxZ >= playerMinZ;
+      if (projectileHitboxType === "SPHERE") {
+        const sphereRadius = projectileWidth/2;
   
-      if (overlapX && overlapY && overlapZ) {
+        // 🔴 Plane cutoff check: ignore if sphere center is above the plane
+        // Assume proj.castedFromGroundY is the dome base Y
+        const planeYCutAbove = proj.castedFromGroundY + (projectileHeight / 2);
+        if (proj.y > planeYCutAbove) {
+          continue; // skip collision checks for this player
+        }
+        const planeYCutBellow = proj.castedFromGroundY - (projectileHeight / 2);
+        if (proj.y < planeYCutBellow) {
+          continue; // skip collision checks for this player
+        }
+        // Sphere vs AABB collision
+        const closestX = Math.max(playerMinX, Math.min(proj.x, playerMaxX));
+        const closestY = Math.max(playerMinY, Math.min(proj.y, playerMaxY));
+        const closestZ = Math.max(playerMinZ, Math.min(proj.z, playerMaxZ));
+  
+        const distanceX = proj.x - closestX;
+        const distanceY = proj.y - closestY;
+        const distanceZ = proj.z - closestZ;
+  
+        const distanceSquared = distanceX * distanceX + distanceY * distanceY + distanceZ * distanceZ;
+  
+        isColliding = distanceSquared < (sphereRadius * sphereRadius);
+  
+      } else {
+        // CUBOID collision
+        const halfProjW = projectileWidth / 2;
+        const halfProjH = projectileHeight / 2;
+  
+        const projMinX = proj.x - halfProjW;
+        const projMaxX = proj.x + halfProjW;
+        const projMinY = proj.y - halfProjH;
+        const projMaxY = proj.y + halfProjH;
+        const projMinZ = proj.z - halfProjW;
+        const projMaxZ = proj.z + halfProjW;
+  
+        const overlapX = projMinX <= playerMaxX && projMaxX >= playerMinX;
+        const overlapY = projMinY <= playerMaxY && projMaxY >= playerMinY;
+        const overlapZ = projMinZ <= playerMaxZ && projMaxZ >= playerMinZ;
+  
+        isColliding = overlapX && overlapY && overlapZ;
+      }
+  
+      if (isColliding) {
         let whatWasHit = new WhatWasHit();
         whatWasHit.hitReceiverSessionId = sessionId;
         whatWasHit.hitReceiverType = "PLAYER";
         whatWasHit.hitCoordinatesX = proj.x;
         whatWasHit.hitCoordinatesY = proj.y;
         whatWasHit.hitCoordinatesZ = proj.z;
-
         whatWasHit.yGroundCoordinates = proj.castedFromGroundY;
         arrWhatWasHit.push(whatWasHit);
-        
       }
     }
-    
-    //check if hit the ground
-    if(proj.y <= proj.castedFromGroundY){
+  
+    // Ground hit still applies
+    if (proj.y <= proj.castedFromGroundY) {
       let whatWasHit = new WhatWasHit();
       whatWasHit.hitReceiverType = "GROUND";
       whatWasHit.hitCoordinatesX = proj.x;
@@ -155,7 +181,7 @@ export class MyRoom extends Room<MyRoomState> {
   
     return arrWhatWasHit;
   }
-
+  
 
 
   //ticks per field
@@ -171,10 +197,16 @@ export class MyRoom extends Room<MyRoomState> {
       fakeProjectile.x = fieldTickEffect.x;
       fakeProjectile.y = fieldTickEffect.y;
       fakeProjectile.z = fieldTickEffect.z;
+      fakeProjectile.projectileProperties = new ProjectileProperties();
+      fakeProjectile.projectileProperties.projectileHitboxType = "SPHERE";
+      fakeProjectile.projectileProperties.projectileWidth = fieldTickEffect.widthEffectArea;
+      fakeProjectile.projectileProperties.projectileHeight = fieldTickEffect.heightEffectArea;
       fakeProjectile.ownerPlayerSessionId = fieldTickEffect?.ownerPlayerSessionId;
 
+      console.log("The width: ", fieldTickEffect.widthEffectArea);
+      console.log("The heu: ", fieldTickEffect.heightEffectArea);
       
-      let arrWhatWasHit: WhatWasHit[] | null = this.checkBulletTypeProjectileCollisions(
+      let arrWhatWasHit: WhatWasHit[] | null = this.checkProjectileCollisions(
         fakeProjectile,
         fieldTickEffect.widthEffectArea,
         fieldTickEffect.heightEffectArea
@@ -272,7 +304,7 @@ export class MyRoom extends Room<MyRoomState> {
       }
 
       //the collisions of the actual projectile only
-      let arrWhatWasHit: WhatWasHit[] | null = this.checkBulletTypeProjectileCollisions(
+      let arrWhatWasHit: WhatWasHit[] | null = this.checkProjectileCollisions(
         proj,
         proj.projectileProperties.projectileWidth,
         proj.projectileProperties.projectileHeight
@@ -458,7 +490,7 @@ export class MyRoom extends Room<MyRoomState> {
 
             //HERE CREATE A NEW METHOD CALLED CHECKPROJECTILEAOECOLLISION
             //check if something collides with the AOE radius 
-            let checkNewReceiveDmg: WhatWasHit[] | null = this.checkBulletTypeProjectileCollisions(
+            let checkNewReceiveDmg: WhatWasHit[] | null = this.checkProjectileCollisions(
               aoeProjectile,
               aoeProjectile.projectileProperties.projectileWidth,
               aoeProjectile.projectileProperties.projectileHeight
@@ -652,6 +684,7 @@ export class MyRoom extends Room<MyRoomState> {
       projectileProperties.projectileHeight = skillData.projectileHeight;
       projectileProperties.projectileSpeed = skillData.projectileSpeed;
       projectileProperties.projectileWidth = skillData.projectileWidth;
+      projectileProperties.projectileHitboxType = skillData?.projectileHitboxType ? skillData?.projectileHitboxType: "SPHERE";
       projectileProperties.maxDistance = skillData.maxDistance;
 
       projectileProperties.hitAOERadius = skillData.hitAOERadius;

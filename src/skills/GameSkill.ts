@@ -18,6 +18,8 @@ export class GameSkill extends Schema  {
       @type("number") projectileSpeed: number;
       @type("number") projectileWidth: number;
       @type("number") projectileHeight: number;
+      @type("string") projectileHitboxType: "CUBOID" | "SPHERE";
+      
 
       @type("boolean") projectileGoesThroughPlayers: boolean; //through players only ,not through obstacles
 
@@ -44,6 +46,7 @@ export class GameSkill extends Schema  {
             this.projectileSpeed = 0.7; //default
             this.projectileWidth = 0.312;
             this.projectileHeight = 0.312;
+            this.projectileHitboxType = "SPHERE";
 
             this.projectileGoesThroughPlayers = false;
 
