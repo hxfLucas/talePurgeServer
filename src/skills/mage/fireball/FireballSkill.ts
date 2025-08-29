@@ -21,12 +21,12 @@ export class FireballSkill {
         this.gameSkill.projectileGoesThroughPlayers = false;
 
         
-        /*
+        
         this.gameSkill.hitAOERadius = 5;
-        this.gameSkill.hitAOEDamagingFieldDurationMilliseconds = 2000;
+        this.gameSkill.hitAOEDamagingFieldDurationMilliseconds = 50000;
         this.gameSkill.hitAOEDamagingFieldTicks = 100;
         this.gameSkill.hitAOEDamagingFieldWidth = 10;
-        this.gameSkill.hitAOEDamagingFieldHeight= 5;*/
+        this.gameSkill.hitAOEDamagingFieldHeight= 5;
 
         this.gameSkill.skillType = "PROJECTABLE_THROWABLE";
         this.gameSkill.requiresClassIdentifier = GameDataPlayerClassIdentifiersHelper().getMageClassIdentifier();
