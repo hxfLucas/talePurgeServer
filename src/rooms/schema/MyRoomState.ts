@@ -54,14 +54,22 @@ export class ProjectileProperties extends Schema {
 }
 
 export class WhatWasHit{
+
+  uniqueSessionId:string;
   hitReceiverType: null | 'PLAYER' | 'GROUND' | 'OBSTACLE';
+  playAnimationHit?:boolean;
   hitReceiverPlayerSessionId?: string;
   hitSenderPlayerSessionId?:string;
+  hitSkillIdentifier?:string;
   hitCoordinatesX:number;
   hitCoordinatesY:number;
   hitCoordinatesZ:number;
 
   yGroundCoordinates:number;
+  
+  constructor() {
+    this.uniqueSessionId = "wwh_" + Math.random() + "_" + Math.random();
+  }
 }
 
 /* mostly for tracking which field is active , usefull for players that were not in the room before this was casted as this is only removed after the duration expires */

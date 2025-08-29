@@ -170,6 +170,7 @@ export class MyRoom extends Room<MyRoomState> {
         let whatWasHit = new WhatWasHit();
         whatWasHit.hitSenderPlayerSessionId = proj.ownerPlayerSessionId;
         whatWasHit.hitReceiverPlayerSessionId = sessionId;
+        whatWasHit.hitSkillIdentifier = proj.skillIdentifier;
         whatWasHit.hitReceiverType = "PLAYER";
         whatWasHit.hitCoordinatesX = proj.x;
         whatWasHit.hitCoordinatesY = proj.y;
@@ -183,6 +184,7 @@ export class MyRoom extends Room<MyRoomState> {
     if (proj.y <= proj.castedFromGroundY) {
       let whatWasHit = new WhatWasHit();
       whatWasHit.hitSenderPlayerSessionId = proj.ownerPlayerSessionId;
+      whatWasHit.hitSkillIdentifier = proj.skillIdentifier;
       whatWasHit.hitReceiverType = "GROUND";
       whatWasHit.hitCoordinatesX = proj.x;
       whatWasHit.hitCoordinatesY = proj.y;
@@ -378,6 +380,7 @@ export class MyRoom extends Room<MyRoomState> {
             let whatWasHit = new WhatWasHit();
             whatWasHit.hitReceiverType = "GROUND";
             whatWasHit.hitReceiverPlayerSessionId = null;
+            whatWasHit.hitSkillIdentifier = proj.skillIdentifier;
             whatWasHit.hitSenderPlayerSessionId = proj.ownerPlayerSessionId;
             whatWasHit.hitCoordinatesX = proj.x;
             whatWasHit.hitCoordinatesY = proj.y;
@@ -424,6 +427,7 @@ export class MyRoom extends Room<MyRoomState> {
         
         if(!hasHitAOE){
           for(let i = 0; i<arrWhatWasHit.length; i++){
+            arrWhatWasHit[i].playAnimationHit = true;
             relevantHitTargets.push(arrWhatWasHit[i]);
           }
         }else if(hasHitAOE){
@@ -506,7 +510,26 @@ export class MyRoom extends Room<MyRoomState> {
               aoeProjectile.projectileProperties.projectileHeight
             );
 
-            if(checkNewReceiveDmg){
+            if(checkNewReceiveDmg && checkNewReceiveDmg.length > 0){
+
+              //order hits by the closest to the aoe projectile, so we will only "trigger hit effect" on the closest
+              checkNewReceiveDmg.sort((a, b) => {
+                const distanceA = Math.sqrt(
+                  Math.pow(a.hitCoordinatesX - aoeProjectile.x, 2) +
+                  Math.pow(a.hitCoordinatesY - aoeProjectile.y, 2) +
+                  Math.pow(a.hitCoordinatesZ - aoeProjectile.z, 2)
+                );
+            
+                const distanceB = Math.sqrt(
+                  Math.pow(b.hitCoordinatesX - aoeProjectile.x, 2) +
+                  Math.pow(b.hitCoordinatesY - aoeProjectile.y, 2) +
+                  Math.pow(b.hitCoordinatesZ - aoeProjectile.z, 2)
+                );
+            
+                return distanceA - distanceB; // smallest distance first
+              });
+              checkNewReceiveDmg[0].playAnimationHit = true; //only play explosion on the closest hit target
+      
               for(let i = 0; i<checkNewReceiveDmg.length; i++){
                 if(checkNewReceiveDmg[i].hitReceiverType === "PLAYER"){
                   let hitPlayerId = checkNewReceiveDmg[i].hitReceiverPlayerSessionId;
@@ -528,7 +551,7 @@ export class MyRoom extends Room<MyRoomState> {
 
         //damage logic etc
         if(relevantHitTargets.length > 0){
-          console.log("SOMETHING WAS HIT");
+      
           //clean possible repeatables
           let targetsToDamage:WhatWasHit[] = [];
 
