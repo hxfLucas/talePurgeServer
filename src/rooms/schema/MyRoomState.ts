@@ -144,6 +144,27 @@ export class Projectile extends Schema {
 
 }
 
+
+export class MeleeStrike extends Schema {
+
+  @type("string") uniqueSessionId: string;
+
+
+  //cur pos
+  @type("number") x: number;
+  @type("number") y: number;
+  @type("number") z: number;
+
+
+  @type("number") dirX: number;
+  @type("number") dirY: number;
+  @type("number") dirZ: number;
+
+  @type("string") skillIdentifier: string;
+
+
+}
+
 export class Player extends Schema {
 
   @type("string") playerSessionId: string;

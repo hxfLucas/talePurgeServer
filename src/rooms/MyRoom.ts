@@ -1,5 +1,5 @@
 import { Room, Client } from "@colyseus/core";
-import { FieldEffect, FieldTickEffect, MyRoomState, Projectile, ProjectileProperties, WhatWasHit } from "./schema/MyRoomState";
+import { FieldEffect, FieldTickEffect, MeleeStrike, MyRoomState, Projectile, ProjectileProperties, WhatWasHit } from "./schema/MyRoomState";
 import { Player } from "./schema/MyRoomState";
 import { BASE_MOVING_SPEED } from "../constants";
 import { FlarisMap } from "../maps/Map/FlarisMap";
@@ -698,6 +698,27 @@ export class MyRoom extends Room<MyRoomState> {
 
     });
 
+    this.onMessage("myPlayer/melee",(client, message) => {
+      const player = this.state.players.get(client.sessionId);
+      if (!player) return;
+
+      let meleeStrike = new MeleeStrike();
+      meleeStrike.x = player.x;
+      meleeStrike.y = player.y;
+      meleeStrike.z = player.z;
+      meleeStrike.dirX = message?.dirX;
+      meleeStrike.dirY = message?.dirY;
+      meleeStrike.dirZ = message?.dirZ;
+      meleeStrike.skillIdentifier = message?.skillIdentifier;
+      if(!meleeStrike?.skillIdentifier){
+        return;
+      }
+      let skillData = this.state.gameData.gameSkills.get(meleeStrike.skillIdentifier);
+      //TODO check if player can even cast this skill, add to the state of "meele attacks processing"
+      //TODO process melee strike
+
+    });
+
     this.onMessage("myPlayer/shoot", (client, message) => {
       const player = this.state.players.get(client.sessionId);
       if (!player) return;
@@ -735,7 +756,10 @@ export class MyRoom extends Room<MyRoomState> {
     
       let skillData = this.state.gameData.gameSkills.get(projectile.skillIdentifier);
    
-      if(!skillData){
+      //TODO validate if player can even cast this skill, minimum requirements, class, level, etc..
+
+      let isProjectileSkill = skillData.skillType == "PROJECTABLE_NO_GRAVITY" || skillData.skillType === "PROJECTABLE_PROJECTILE" || skillData.skillType === "PROJECTABLE_THROWABLE";
+      if(!skillData.skillType || !isProjectileSkill){
         return;
       }
       
