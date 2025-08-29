@@ -19,6 +19,8 @@ export class GameSkill extends Schema  {
       @type("number") projectileWidth: number;
       @type("number") projectileHeight: number;
 
+      @type("boolean") projectileGoesThroughPlayers: boolean; //through players only ,not through obstacles
+
       //throwable specific
       @type("number") hitAOERadius: number;
 
@@ -42,6 +44,8 @@ export class GameSkill extends Schema  {
             this.projectileSpeed = 0.7; //default
             this.projectileWidth = 0.312;
             this.projectileHeight = 0.312;
+
+            this.projectileGoesThroughPlayers = false;
 
             //throwable defaults
             this.hitAOERadius = 0;

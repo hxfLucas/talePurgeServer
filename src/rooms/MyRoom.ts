@@ -78,21 +78,26 @@ export class MyRoom extends Room<MyRoomState> {
     return true;
   }
   
+  builderKeyMapKeyProjectilePlayerHitPreventDoubleHits(projectileSessionId:string, playerSessionId:string){
+    return projectileSessionId + "__" + playerSessionId;
+  }
 
-  checkProjectileCollisions(
+  //bullet type is better performant comparison than checking rotated rectangles 
+  checkBulletTypeProjectileCollisions(
     proj: Projectile,
     projectileWidth: number,
     projectileHeight: number
   ): WhatWasHit[] | null {
 
     let arrWhatWasHit:WhatWasHit[] = [];
-    
+
 
     // Loop through all players
     for (const [sessionId, player] of this.state.players) {
+
+
       // Skip owner (so projectiles don’t immediately collide with caster)
       if (sessionId === proj.ownerPlayerSessionId) continue;
-  
       const playerHitboxWidth = this.state.gameData.gameDataGlobal.playerHitboxWidth;
       const playerHitboxHeight = this.state.gameData.gameDataGlobal.playerHitboxHeight;
   
@@ -169,7 +174,7 @@ export class MyRoom extends Room<MyRoomState> {
       fakeProjectile.ownerPlayerSessionId = fieldTickEffect?.ownerPlayerSessionId;
 
       
-      let arrWhatWasHit: WhatWasHit[] | null = this.checkProjectileCollisions(
+      let arrWhatWasHit: WhatWasHit[] | null = this.checkBulletTypeProjectileCollisions(
         fakeProjectile,
         fieldTickEffect.widthEffectArea,
         fieldTickEffect.heightEffectArea
@@ -205,12 +210,16 @@ export class MyRoom extends Room<MyRoomState> {
       const speed = proj.projectileProperties.projectileSpeed;
     
 
+   
+
       let projSkillIdentifier = proj.skillIdentifier;
       
       let skillData = this.state.gameData.gameSkills.get(projSkillIdentifier);
       if(!skillData){
         continue;
       }
+
+      let allowsGoThroughPlayers = skillData.projectileGoesThroughPlayers;
       // Normalize dir
       const len = Math.sqrt(proj.dirX*proj.dirX + proj.dirY*proj.dirY + proj.dirZ*proj.dirZ) || 1;
       const dx = (proj.dirX / len) * speed;
@@ -263,7 +272,7 @@ export class MyRoom extends Room<MyRoomState> {
       }
 
       //the collisions of the actual projectile only
-      let arrWhatWasHit: WhatWasHit[] | null = this.checkProjectileCollisions(
+      let arrWhatWasHit: WhatWasHit[] | null = this.checkBulletTypeProjectileCollisions(
         proj,
         proj.projectileProperties.projectileWidth,
         proj.projectileProperties.projectileHeight
@@ -282,8 +291,14 @@ export class MyRoom extends Room<MyRoomState> {
           // --- Check collisions (AABB vs player) ---
           const hitPlayerId = whatWasHit?.hitReceiverType === "PLAYER" && whatWasHit?.hitReceiverSessionId ? whatWasHit.hitReceiverSessionId : null;
           if (hitPlayerId) {
+
+
             wasSomethingRelevantHit = true;
-            shouldDeleteFromMemory = true;
+
+            if(!allowsGoThroughPlayers){
+              shouldDeleteFromMemory = true;
+            }
+           
             
             if(verboseDebug){
               console.log(`[VERBOSE] #1a 💥 Projectile ${id} HIT player ${hitPlayerId} with skill ${proj.skillIdentifier}`);
@@ -373,6 +388,7 @@ export class MyRoom extends Room<MyRoomState> {
             //check if hit aoe will spawn another "hittable" like a burning field or healing field
             if(skillData?.hitAOEDamagingFieldDurationMilliseconds > 0 && skillData?.hitAOEDamagingFieldTicks > 0){
                 
+
                 let totalDamageTicks = skillData?.hitAOEDamagingFieldTicks;
                 let millisecondsPerTick = skillData?.hitAOEDamagingFieldDurationMilliseconds / totalDamageTicks;
                 let fullFieldDuration = skillData.hitAOEDamagingFieldDurationMilliseconds;
@@ -385,7 +401,9 @@ export class MyRoom extends Room<MyRoomState> {
                 newFieldEffect.x = spotHitCheckAoe.hitCoordinatesX;
                 newFieldEffect.y = spotHitCheckAoe.yGroundCoordinates; //temp solution, eventually ray cast from hitCoordinates to ground closest collision
                 newFieldEffect.z = spotHitCheckAoe.hitCoordinatesZ;
-               
+                newFieldEffect.dirX = proj.dirX;
+                newFieldEffect.dirY = proj.dirY;
+                newFieldEffect.dirZ = proj.dirZ;
                 newFieldEffect.widthEffectArea = skillData.hitAOEDamagingFieldWidth;
                 newFieldEffect.heightEffectArea = skillData.hitAOEDamagingFieldHeight;
 
@@ -435,7 +453,7 @@ export class MyRoom extends Room<MyRoomState> {
 
             //HERE CREATE A NEW METHOD CALLED CHECKPROJECTILEAOECOLLISION
             //check if something collides with the AOE radius 
-            let checkNewReceiveDmg: WhatWasHit[] | null = this.checkProjectileCollisions(
+            let checkNewReceiveDmg: WhatWasHit[] | null = this.checkBulletTypeProjectileCollisions(
               aoeProjectile,
               aoeProjectile.projectileProperties.projectileWidth,
               aoeProjectile.projectileProperties.projectileHeight
@@ -483,9 +501,24 @@ export class MyRoom extends Room<MyRoomState> {
               
               let casterPlayerSessionId = proj.ownerPlayerSessionId;
               let receiverPlayerSessionId = targetsToDamage[i].hitReceiverSessionId;
+
+                
+              let keyProjectileHitPlayerPreventDoubleDmg = this.builderKeyMapKeyProjectilePlayerHitPreventDoubleHits(proj.uniqueSessionId,receiverPlayerSessionId);
+              if(this.state.mapKeyProjectilePlayerHitPreventDoubleHits.get(keyProjectileHitPlayerPreventDoubleDmg)){
+                console.log("skipping already hit");
+                if(verboseDebug){
+                  console.log(`[VERBOSE] #6a REJECTED hit (already hit) Projectile ${id}  player ${receiverPlayerSessionId} with skill ${proj.skillIdentifier}`);
+                }
+                continue;
+              }
               if(minimalDebug){
                 console.log(` AOE + projectile Result: 💥 Player ${casterPlayerSessionId} hit ${receiverPlayerSessionId} with skill ${proj.skillIdentifier}`);
               }
+              let damageGiverPlayerSessionId = proj.ownerPlayerSessionId;
+              let damageTakerPlayerSessionId = receiverPlayerSessionId;
+              //TODO HERE call "take damage from player"
+              
+              this.state.mapKeyProjectilePlayerHitPreventDoubleHits.set(keyProjectileHitPlayerPreventDoubleDmg, true);
              
             }
           }
