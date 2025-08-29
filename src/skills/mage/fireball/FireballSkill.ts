@@ -18,7 +18,7 @@ export class FireballSkill {
         this.gameSkill.maxDistance = 10;
         this.gameSkill.projectileSpeed = 0.2;
 
-        this.gameSkill.projectileGoesThroughPlayers = true;
+        this.gameSkill.projectileGoesThroughPlayers = false;
 
         /*
         this.gameSkill.hitAOERadius = 5;

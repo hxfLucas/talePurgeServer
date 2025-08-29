@@ -304,11 +304,16 @@ export class MyRoom extends Room<MyRoomState> {
               console.log(`[VERBOSE] #1a 💥 Projectile ${id} HIT player ${hitPlayerId} with skill ${proj.skillIdentifier}`);
             }
           
-          }else if(whatWasHit.hitReceiverType === "GROUND"){
+          }else if(whatWasHit.hitReceiverType === "GROUND" || whatWasHit.hitReceiverType === "OBSTACLE"){
             wasSomethingRelevantHit = true;
             shouldDeleteFromMemory = true;
             if(verboseDebug){
-              console.log(`[VERBOSE] #2a ❌ Projectile ${id} hit the ground (target position < max)`);
+              if(whatWasHit.hitReceiverType === "OBSTACLE"){
+                console.log(`[VERBOSE] #2a ❌ Projectile ${id} hit obstacle`);
+              }else if(whatWasHit.hitReceiverType === "GROUND"){
+                console.log(`[VERBOSE] #2a ❌ Projectile ${id} hit the ground (target position < max)`);
+              }
+             
             }
             
           }
