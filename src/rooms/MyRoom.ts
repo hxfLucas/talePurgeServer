@@ -742,6 +742,7 @@ export class MyRoom extends Room<MyRoomState> {
       let projectileProperties = new ProjectileProperties();
       projectileProperties.projectileHeight = skillData.projectileHeight;
       projectileProperties.projectileSpeed = skillData.projectileSpeed;
+      projectileProperties.projectablePeakScale = skillData.projectablePeakScale;
       projectileProperties.projectileWidth = skillData.projectileWidth;
       projectileProperties.projectileHitboxType = skillData?.projectileHitboxType ? skillData?.projectileHitboxType: "SPHERE";
       projectileProperties.maxDistance = skillData.maxDistance;

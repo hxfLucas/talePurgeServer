@@ -21,7 +21,7 @@ export class FirebombSkill {
         this.gameSkill.hitAOEDamagingFieldDurationMilliseconds = 2000;
         this.gameSkill.hitAOEDamagingFieldTicks = 5;
         //---
-        this.gameSkill.skillType = "THROWABLE";
+        this.gameSkill.skillType = "PROJECTABLE_THROWABLE";
         this.gameSkill.requiresClassIdentifier = GameDataPlayerClassIdentifiersHelper().getMageClassIdentifier()
     }
 

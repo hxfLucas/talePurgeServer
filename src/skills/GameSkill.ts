@@ -23,6 +23,8 @@ export class GameSkill extends Schema  {
       @type("number") projectileHeight: number;
       @type("string") projectileHitboxType: "CUBOID" | "SPHERE";
       
+      @type("number") projectablePeakScale: number; //scale for how high it goes before it starts falling on skill types "PROJECTABLE" that are not _NO_GRAVITY
+
 
       @type("boolean") projectileGoesThroughPlayers: boolean; //through players only ,not through obstacles
 
@@ -47,6 +49,7 @@ export class GameSkill extends Schema  {
 
             //projectile defualts
             this.projectileSpeed = 0.7; //default
+            this.projectablePeakScale = 0.03; // 0.15
             this.projectileWidth = 0.312;
             this.projectileHeight = 0.312;
             this.projectileHitboxType = "SPHERE";

@@ -40,7 +40,8 @@ export class ProjectileProperties extends Schema {
   @type("number") projectileWidth:number;
   @type("number") projectileHeight:number;
   @type("string") projectileHitboxType:"CUBOID" | "SPHERE"; //to verify collisions, CUBOID is better performant, but for certain things dome is better
-
+  @type("number") projectablePeakScale:number;
+  
   @type("number") maxDistance:number;
 
   @type("number") hitAOERadius:number;
