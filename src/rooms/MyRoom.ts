@@ -11,6 +11,7 @@ import { PlayerUISettings } from "../player/PlayerUISettings";
 import { FireballSkill } from "../skills/mage/fireball/FireballSkill";
 import { FirebombSkill } from "../skills/mage/firebomb/FirebombSkill";
 import GameDataPlayerClassIdentifiersHelper from "../helper/identifiers/GameDataPlayerClassIdentifiersHelper";
+import { GameSkill } from "../skills/GameSkill";
 export class MyRoom extends Room<MyRoomState> {
   maxClients = 100; //todo later prevent from creating new rooms when max clients reached
   state = new MyRoomState();
@@ -42,6 +43,15 @@ export class MyRoom extends Room<MyRoomState> {
     const id = "fieldtickeffect_" + this.clock.elapsedTime.toString() + "_" + Math.random(); // unique enough
     fieldTickEffect.uniqueSessionId = id;
     this.state.fieldTickEffects.set(id, fieldTickEffect);
+  }
+
+
+  broadcastSkillHit(whatWasHit:WhatWasHit){
+
+    this.broadcast("skillHitSomething", {
+      whatWasHit:whatWasHit
+    });
+
   }
 
   isValidMovement(player: Player, dx: number, dz: number) {
@@ -116,11 +126,11 @@ export class MyRoom extends Room<MyRoomState> {
   
         // 🔴 Plane cutoff check: ignore if sphere center is above the plane
         // Assume proj.castedFromGroundY is the dome base Y
-        const planeYCutAbove = proj.castedFromGroundY + (projectileHeight / 2);
+        const planeYCutAbove = proj.y + (projectileHeight / 2);
         if (proj.y > planeYCutAbove) {
           continue; // skip collision checks for this player
         }
-        const planeYCutBellow = proj.castedFromGroundY - (projectileHeight / 2);
+        const planeYCutBellow = proj.y - (projectileHeight / 2);
         if (proj.y < planeYCutBellow) {
           continue; // skip collision checks for this player
         }
@@ -158,7 +168,8 @@ export class MyRoom extends Room<MyRoomState> {
   
       if (isColliding) {
         let whatWasHit = new WhatWasHit();
-        whatWasHit.hitReceiverSessionId = sessionId;
+        whatWasHit.hitSenderPlayerSessionId = proj.ownerPlayerSessionId;
+        whatWasHit.hitReceiverPlayerSessionId = sessionId;
         whatWasHit.hitReceiverType = "PLAYER";
         whatWasHit.hitCoordinatesX = proj.x;
         whatWasHit.hitCoordinatesY = proj.y;
@@ -171,6 +182,7 @@ export class MyRoom extends Room<MyRoomState> {
     // Ground hit still applies
     if (proj.y <= proj.castedFromGroundY) {
       let whatWasHit = new WhatWasHit();
+      whatWasHit.hitSenderPlayerSessionId = proj.ownerPlayerSessionId;
       whatWasHit.hitReceiverType = "GROUND";
       whatWasHit.hitCoordinatesX = proj.x;
       whatWasHit.hitCoordinatesY = proj.y;
@@ -214,7 +226,7 @@ export class MyRoom extends Room<MyRoomState> {
         for(let i = 0; i<arrWhatWasHit.length; i++){
 
           if(arrWhatWasHit[i].hitReceiverType === "PLAYER"){
-            console.log(` DamageTickEffect : 💥 Player ${fieldTickEffect.ownerPlayerSessionId} hit ${arrWhatWasHit[i].hitReceiverSessionId} with skill ${fieldTickEffect.originSkillIdentifier}`);
+            console.log(` DamageTickEffect : 💥 Player ${fieldTickEffect.ownerPlayerSessionId} hit ${arrWhatWasHit[i].hitReceiverPlayerSessionId} with skill ${fieldTickEffect.originSkillIdentifier}`);
           }
           
         }
@@ -318,7 +330,7 @@ export class MyRoom extends Room<MyRoomState> {
         for(let i = 0; i<arrWhatWasHit.length; i++){
           let whatWasHit:WhatWasHit = arrWhatWasHit[i];
           // --- Check collisions (AABB vs player) ---
-          const hitPlayerId = whatWasHit?.hitReceiverType === "PLAYER" && whatWasHit?.hitReceiverSessionId ? whatWasHit.hitReceiverSessionId : null;
+          const hitPlayerId = whatWasHit?.hitReceiverType === "PLAYER" && whatWasHit?.hitReceiverPlayerSessionId ? whatWasHit.hitReceiverPlayerSessionId : null;
           if (hitPlayerId) {
 
 
@@ -365,7 +377,8 @@ export class MyRoom extends Room<MyRoomState> {
             }
             let whatWasHit = new WhatWasHit();
             whatWasHit.hitReceiverType = "GROUND";
-            whatWasHit.hitReceiverSessionId = null;
+            whatWasHit.hitReceiverPlayerSessionId = null;
+            whatWasHit.hitSenderPlayerSessionId = proj.ownerPlayerSessionId;
             whatWasHit.hitCoordinatesX = proj.x;
             whatWasHit.hitCoordinatesY = proj.y;
             whatWasHit.hitCoordinatesZ = proj.z;
@@ -392,7 +405,7 @@ export class MyRoom extends Room<MyRoomState> {
 
                
       if(arrWhatWasHit.length > 0){ //something was hit
-
+        
 
         //if something was hit and skill is AOE, get the first hit and from there check what was really hit so we 
         //use logic to "take damage" etc
@@ -496,7 +509,7 @@ export class MyRoom extends Room<MyRoomState> {
             if(checkNewReceiveDmg){
               for(let i = 0; i<checkNewReceiveDmg.length; i++){
                 if(checkNewReceiveDmg[i].hitReceiverType === "PLAYER"){
-                  let hitPlayerId = checkNewReceiveDmg[i].hitReceiverSessionId;
+                  let hitPlayerId = checkNewReceiveDmg[i].hitReceiverPlayerSessionId;
                   
                   if(verboseDebug){
                     console.log(`[VERBOSE] #5a 💥 (AOE) Projectile ${id} HIT player ${hitPlayerId} with skill ${proj.skillIdentifier}`);
@@ -515,13 +528,14 @@ export class MyRoom extends Room<MyRoomState> {
 
         //damage logic etc
         if(relevantHitTargets.length > 0){
-
+          console.log("SOMETHING WAS HIT");
           //clean possible repeatables
           let targetsToDamage:WhatWasHit[] = [];
+
           let mapAlreadyAddedToDamageTargets:any =  {};
           for(let i = 0; i<relevantHitTargets.length;i++){
             if(relevantHitTargets[i].hitReceiverType === "PLAYER"){
-              let playerSessionId = relevantHitTargets[i].hitReceiverSessionId;
+              let playerSessionId = relevantHitTargets[i].hitReceiverPlayerSessionId;
               if(!mapAlreadyAddedToDamageTargets?.[playerSessionId]){
                 targetsToDamage.push(relevantHitTargets[i]);
                 mapAlreadyAddedToDamageTargets[playerSessionId] = true;
@@ -534,7 +548,7 @@ export class MyRoom extends Room<MyRoomState> {
             for(let i = 0; i< targetsToDamage.length; i++){
               
               let casterPlayerSessionId = proj.ownerPlayerSessionId;
-              let receiverPlayerSessionId = targetsToDamage[i].hitReceiverSessionId;
+              let receiverPlayerSessionId = targetsToDamage[i]?.hitReceiverPlayerSessionId;
 
                 
               let keyProjectileHitPlayerPreventDoubleDmg = this.builderKeyMapKeyProjectilePlayerHitPreventDoubleHits(proj.uniqueSessionId,receiverPlayerSessionId);
@@ -551,7 +565,7 @@ export class MyRoom extends Room<MyRoomState> {
               let damageGiverPlayerSessionId = proj.ownerPlayerSessionId;
               let damageTakerPlayerSessionId = receiverPlayerSessionId;
               //TODO HERE call "take damage from player"
-              
+              this.broadcastSkillHit(targetsToDamage[i]);
               this.state.mapKeyProjectilePlayerHitPreventDoubleHits.set(keyProjectileHitPlayerPreventDoubleDmg, true);
              
             }

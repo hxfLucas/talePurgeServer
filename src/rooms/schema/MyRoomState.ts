@@ -55,7 +55,8 @@ export class ProjectileProperties extends Schema {
 
 export class WhatWasHit{
   hitReceiverType: null | 'PLAYER' | 'GROUND' | 'OBSTACLE';
-  hitReceiverSessionId?: string;
+  hitReceiverPlayerSessionId?: string;
+  hitSenderPlayerSessionId?:string;
   hitCoordinatesX:number;
   hitCoordinatesY:number;
   hitCoordinatesZ:number;
