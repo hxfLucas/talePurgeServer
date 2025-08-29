@@ -203,8 +203,6 @@ export class MyRoom extends Room<MyRoomState> {
       fakeProjectile.projectileProperties.projectileHeight = fieldTickEffect.heightEffectArea;
       fakeProjectile.ownerPlayerSessionId = fieldTickEffect?.ownerPlayerSessionId;
 
-      console.log("The width: ", fieldTickEffect.widthEffectArea);
-      console.log("The heu: ", fieldTickEffect.heightEffectArea);
       
       let arrWhatWasHit: WhatWasHit[] | null = this.checkProjectileCollisions(
         fakeProjectile,
@@ -226,7 +224,6 @@ export class MyRoom extends Room<MyRoomState> {
 
     // Remove already processed field effects
     for (const id of toDelete) {
-      console.log("DELETE FTICK");
       this.state.fieldTickEffects.delete(id);
     }
   }
