@@ -16,7 +16,7 @@ export class FireballSkill {
         this.gameSkill.castMilliseconds = 250;
         this.gameSkill.cooldownMilliseconds = 500;
         this.gameSkill.maxDistance = 10;
-        this.gameSkill.projectileSpeed = 0.2;
+        this.gameSkill.projectileSpeed = 0.5;
 
         this.gameSkill.projectileGoesThroughPlayers = false;
 
