@@ -21,7 +21,7 @@ export class FlarisMap {
 
         let treeAsset = mapAssets().get('tree_01');
         gameMapObjects.push(new GameMapObject().define(treeAsset.identifier,{
-            x:-21.93, y:2, z:7.41
+            x:-21.93, y:0, z:7.41
         },{...treeAsset}));
       
         this.gameMap.gameMapObjects = gameMapObjects;

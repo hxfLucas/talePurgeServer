@@ -53,7 +53,6 @@ export class MyRoom extends Room<MyRoomState> {
     });
 
   }
-
   isValidMovement(player: Player, dx: number, dz: number) {
     const velocity = player?.movingSpeed ?? BASE_MOVING_SPEED;
     const lenSq = dx * dx + dz * dz;
@@ -67,26 +66,47 @@ export class MyRoom extends Room<MyRoomState> {
   
     // --- collision check ---
     const nextX = player.x + dx;
+    const nextY = player.y; // assuming player.y is current Y
     const nextZ = player.z + dz;
   
+    let playerWidthX = this.state.gameData.gameDataGlobal.playerHitboxWidth;
+    let playerWidthZ = this.state.gameData.gameDataGlobal.playerHitboxWidthZ;
+    let playerHeightY = this.state.gameData.gameDataGlobal.playerHitboxHeight;
+    const halfPlayerX = playerWidthX / 2; 
+    const halfPlayerY = playerHeightY / 2;  
+    const halfPlayerZ = playerWidthZ / 2; 
+  
     for (const obj of this.state.mapData.gameMapObjects) {
-      if (!obj.colliderWidthX || !obj.colliderWidthZ) continue; // skip objects without colliders
-      
-     
-      const minX = obj.x - obj.colliderWidthX / 2;
-      const maxX = obj.x + obj.colliderWidthX / 2;
-      const minZ = obj.z - obj.colliderWidthZ / 2;
-      const maxZ = obj.z + obj.colliderWidthZ / 2;
-      
-      // simple point vs AABB check
-      if (nextX >= minX && nextX <= maxX && nextZ >= minZ && nextZ <= maxZ) {
+      if (!obj.colliderWidthX || !obj.colliderWidthY || !obj.colliderWidthZ) continue;
+  
+      const offsetY = obj.offsetColliderPositionY || 0;
+      const objY = obj.y + offsetY;
+  
+      const halfObjX = obj.colliderWidthX / 2;
+      const halfObjY = obj.colliderWidthY / 2;
+      const halfObjZ = obj.colliderWidthZ / 2;
+  
+      const minX = obj.x - halfObjX;
+      const maxX = obj.x + halfObjX;
+      const minY = objY - halfObjY;
+      const maxY = objY + halfObjY;
+      const minZ = obj.z - halfObjZ;
+      const maxZ = obj.z + halfObjZ;
+  
+      // AABB vs AABB collision check
+      const overlapX = nextX + halfPlayerX > minX && nextX - halfPlayerX < maxX;
+      const overlapY = nextY + halfPlayerY > minY && nextY - halfPlayerY < maxY;
+      const overlapZ = nextZ + halfPlayerZ > minZ && nextZ - halfPlayerZ < maxZ;
+      //todo add a small epsilon to avoid beeing stuck on corners, actually client side already does this well, but implementhing this would prevent "hackers" from going inside
+      if (overlapX && overlapY && overlapZ) {
         console.log("COLLIDED!");
-        return false; // collision!
+        return false; // collision detected
       }
     }
   
-    return true;
+    return true; // no collision
   }
+  
   
   builderKeyMapKeyProjectilePlayerHitPreventDoubleHits(projectileSessionId:string, playerSessionId:string){
     return projectileSessionId + "__" + playerSessionId;
@@ -102,6 +122,76 @@ export class MyRoom extends Room<MyRoomState> {
       ? proj?.projectileProperties?.projectileHitboxType 
       : "CUBOID";
   
+
+    // Loop through all objects
+    for (const gameObject of this.state.mapData.gameMapObjects) {
+      // Skip objects that are not obstacles if needed
+      if (!gameObject.isObstacle) continue;
+    
+      const halfObjW = gameObject.colliderWidthX / 2;
+      const halfObjH = gameObject.colliderWidthY / 2;
+      const halfObjD = gameObject.colliderWidthZ / 2;
+    
+      // Apply Y offset for collider
+      const objY = gameObject.y + (gameObject.offsetColliderPositionY || 0);
+     
+      const objMinX = gameObject.x - halfObjW;
+      const objMaxX = gameObject.x + halfObjW;
+      const objMinY = objY - halfObjH;
+      const objMaxY = objY + halfObjH;
+      const objMinZ = gameObject.z - halfObjD;
+      const objMaxZ = gameObject.z + halfObjD;
+    
+      let isColliding = false;
+    
+      if (projectileHitboxType === "SPHERE") {
+    
+        const sphereRadius = projectileWidth / 2;
+    
+        const closestX = Math.max(objMinX, Math.min(proj.x, objMaxX));
+        const closestY = Math.max(objMinY, Math.min(proj.y, objMaxY));
+        const closestZ = Math.max(objMinZ, Math.min(proj.z, objMaxZ));
+    
+        const distanceX = proj.x - closestX;
+        const distanceY = proj.y - closestY;
+        const distanceZ = proj.z - closestZ;
+    
+        const distanceSquared = distanceX * distanceX + distanceY * distanceY + distanceZ * distanceZ;
+
+        isColliding = distanceSquared < (sphereRadius * sphereRadius);
+      } else {
+        // CUBOID collision
+        const halfProjW = projectileWidth / 2;
+        const halfProjH = projectileHeight / 2;
+    
+        const projMinX = proj.x - halfProjW;
+        const projMaxX = proj.x + halfProjW;
+        const projMinY = proj.y - halfProjH;
+        const projMaxY = proj.y + halfProjH;
+        const projMinZ = proj.z - halfProjW;
+        const projMaxZ = proj.z + halfProjW;
+    
+        const overlapX = projMinX <= objMaxX && projMaxX >= objMinX;
+        const overlapY = projMinY <= objMaxY && projMaxY >= objMinY;
+        const overlapZ = projMinZ <= objMaxZ && projMaxZ >= objMinZ;
+    
+        isColliding = overlapX && overlapY && overlapZ;
+      }
+      
+      if (isColliding) {
+        let whatWasHit = new WhatWasHit();
+        whatWasHit.hitSenderPlayerSessionId = proj.ownerPlayerSessionId;
+        whatWasHit.hitSkillIdentifier = proj.skillIdentifier;
+        whatWasHit.hitReceiverType = "OBSTACLE";
+        whatWasHit.hitReceiverObjectSessionId = gameObject.objectSessionId;
+        whatWasHit.hitCoordinatesX = proj.x;
+        whatWasHit.hitCoordinatesY = proj.y;
+        whatWasHit.hitCoordinatesZ = proj.z;
+        whatWasHit.yGroundCoordinates = proj.castedFromGroundY;
+        arrWhatWasHit.push(whatWasHit);
+      }
+    }
+
     // Loop through all players
     for (const [sessionId, player] of this.state.players) {
       if (sessionId === proj.ownerPlayerSessionId) continue;

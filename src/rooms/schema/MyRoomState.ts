@@ -60,6 +60,7 @@ export class WhatWasHit{
   hitReceiverType: null | 'PLAYER' | 'GROUND' | 'OBSTACLE' | 'NPC';
   playAnimationHit?:boolean;
   hitReceiverPlayerSessionId?: string;
+  hitReceiverObjectSessionId?: string;
   hitSenderPlayerSessionId?:string;
   hitSkillIdentifier?:string;
   hitCoordinatesX:number;
