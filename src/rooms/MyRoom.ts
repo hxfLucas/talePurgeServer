@@ -309,7 +309,7 @@ export class MyRoom extends Room<MyRoomState> {
       
         // clamp to maxDistance
         const effectiveDist = skillData?.skillType === 'PROJECTABLE_PROJECTILE' ? proj.projectileProperties.maxDistance : Math.min(totalHorizontalDist, proj.projectileProperties.maxDistance);
-
+        proj.effectiveDistance = effectiveDist;
         // normalized direction
         const dirX = (targetX - startX) / totalHorizontalDist;
         const dirZ = (targetZ - startZ) / totalHorizontalDist;
@@ -319,6 +319,8 @@ export class MyRoom extends Room<MyRoomState> {
         proj.x += dirX * moveDist;
         proj.z += dirZ * moveDist;
         proj.traveled += moveDist;
+
+       
       
         // normalized progress (0 → 1)
         const t = Math.min(proj.traveled / effectiveDist, 1);
@@ -326,7 +328,7 @@ export class MyRoom extends Room<MyRoomState> {
         // parabolic Y
         const startHeight = proj.startY;
         const groundY = proj.castedFromGroundY ?? 0;
-        const peakHeight = effectiveDist * 0.15; // same scaling as client
+        const peakHeight = effectiveDist * skillData?.projectablePeakScale;//0.15; // same scaling as client
       
         proj.y =
           (1 - t) * startHeight +

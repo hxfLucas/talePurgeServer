@@ -135,6 +135,7 @@ export class Projectile extends Schema {
   @type("number") castedFromGroundY: number;
 
   @type("number") traveled: number = 0;
+  @type("number") effectiveDistance:number = 0; //calculated max distance it will travel until it hits something
 
   @type("string") skillIdentifier: string;
   @type("string") ownerPlayerSessionId: string;
