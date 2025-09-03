@@ -196,18 +196,21 @@ export class MyRoom extends Room<MyRoomState> {
     for (const [sessionId, player] of this.state.players) {
       if (sessionId === proj.ownerPlayerSessionId) continue;
       
-      const playerHitboxWidth = this.state.gameData.gameDataGlobal.playerHitboxWidth;
+      const playerHitboxWidthX = this.state.gameData.gameDataGlobal.playerHitboxWidth;
+      const playerHitboxWidthZ = this.state.gameData.gameDataGlobal.playerHitboxWidthZ;
       const playerHitboxHeight = this.state.gameData.gameDataGlobal.playerHitboxHeight;
-  
-      const halfPlayerW = playerHitboxWidth / 2;
-      const halfPlayerH = playerHitboxHeight / 2;
-  
-      const playerMinX = player.x - halfPlayerW;
-      const playerMaxX = player.x + halfPlayerW;
-      const playerMinY = player.y - halfPlayerH;
-      const playerMaxY = player.y + halfPlayerH;
-      const playerMinZ = player.z - halfPlayerW;
-      const playerMaxZ = player.z + halfPlayerW;
+
+
+      const halfPlayerX = playerHitboxWidthX / 2;
+      const halfPlayerY = playerHitboxHeight / 2;
+      const halfPlayerZ = playerHitboxWidthZ / 2;
+    
+      const playerMinX = player.x - halfPlayerX;
+      const playerMaxX = player.x + halfPlayerX;
+      const playerMinY = player.y - halfPlayerY;
+      const playerMaxY = player.y + halfPlayerY;
+      const playerMinZ = player.z - halfPlayerZ;
+      const playerMaxZ = player.z + halfPlayerZ;
   
       let isColliding = false;
   
