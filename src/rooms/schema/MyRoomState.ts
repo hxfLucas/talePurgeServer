@@ -190,6 +190,7 @@ export class Player extends Schema {
 
   inputQueue: any[] = [];
 
+  latestInput:any = null;
 
 }
 

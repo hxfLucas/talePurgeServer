@@ -53,28 +53,25 @@ export class MyRoom extends Room<MyRoomState> {
     });
 
   }
-  isValidMovement(player: Player, dx: number, dz: number) {
+  isValidMovement(player: Player, dx: number, dy: number, dz: number) {
     const velocity = player?.movingSpeed ?? BASE_MOVING_SPEED;
-    const lenSq = dx * dx + dz * dz;
-    const stepSq = velocity * velocity;
-    const epsilon = 0.013;
+    const step = velocity * this.fixedTimeStep; // max per tick
+    const attemptedDistance = Math.sqrt(dx*dx + dy*dy + dz*dz);
   
-    // --- speed hack check ---
-    if (Math.abs(lenSq - stepSq) > epsilon) {
-      return false;
-    }
+    //if (attemptedDistance > step + 0.001) return false; // prevent hacks
   
     // --- collision check ---
     const nextX = player.x + dx;
-    const nextY = player.y; // assuming player.y is current Y
+    const nextY = player.y + dy;
     const nextZ = player.z + dz;
   
-    let playerWidthX = this.state.gameData.gameDataGlobal.playerHitboxWidth;
-    let playerWidthZ = this.state.gameData.gameDataGlobal.playerHitboxWidthZ;
-    let playerHeightY = this.state.gameData.gameDataGlobal.playerHitboxHeight;
-    const halfPlayerX = playerWidthX / 2; 
-    const halfPlayerY = playerHeightY / 2;  
-    const halfPlayerZ = playerWidthZ / 2; 
+    const playerWidthX = this.state.gameData.gameDataGlobal.playerHitboxWidth;
+    const playerWidthZ = this.state.gameData.gameDataGlobal.playerHitboxWidthZ;
+    const playerHeightY = this.state.gameData.gameDataGlobal.playerHitboxHeight;
+  
+    const halfPlayerX = playerWidthX / 2;
+    const halfPlayerY = playerHeightY / 2;
+    const halfPlayerZ = playerWidthZ / 2;
   
     for (const obj of this.state.mapData.gameMapObjects) {
       if (!obj.colliderWidthX || !obj.colliderWidthY || !obj.colliderWidthZ) continue;
@@ -97,9 +94,8 @@ export class MyRoom extends Room<MyRoomState> {
       const overlapX = nextX + halfPlayerX > minX && nextX - halfPlayerX < maxX;
       const overlapY = nextY + halfPlayerY > minY && nextY - halfPlayerY < maxY;
       const overlapZ = nextZ + halfPlayerZ > minZ && nextZ - halfPlayerZ < maxZ;
-      //todo add a small epsilon to avoid beeing stuck on corners, actually client side already does this well, but implementhing this would prevent "hackers" from going inside
+  
       if (overlapX && overlapY && overlapZ) {
-        console.log("COLLIDED!");
         return false; // collision detected
       }
     }
@@ -727,48 +723,50 @@ export class MyRoom extends Room<MyRoomState> {
     }
   }
   
-  fixedTick(deltaTime:number){
-
-
-
- 
+  fixedTick(deltaTime: number) {
     this.state.players.forEach(player => {
-        let input: any;
- 
-        // dequeue player inputs
-        while (input = player.inputQueue.shift()) {
-          const velocity = player?.movingSpeed ? player.movingSpeed :  BASE_MOVING_SPEED;
+      const input = player.latestInput;
+      if (!input) return;
+     
+      // Base speed (can depend on sprint, buffs, mounts, etc.)
+      const velocity = player.movingSpeed ?? BASE_MOVING_SPEED;
+      //console.log(" THE DELTA TIME: ",deltaTime);
+      // Distance allowed this tick
+      const step = velocity * parseFloat(deltaTime.toFixed(2));
   
-          let isValidMovement = this.isValidMovement(player,input.x, input.z);
-          if (!isValidMovement) {
-            //todo log invalid movement attempt ??
-            continue;
-          }
-          
-          player.x += input.x;
-          player.z += input.z;
-          
-          /*
-          if (input.x < 0) {
-            player.x -= velocity;
-      
-          } else if (input.x > 0) {
-            player.x += velocity;
-          }
-      
-          if (input.z < 0) {
-            player.z -= velocity;
-      
-          } else if (input.z > 0) {
-            player.z += velocity;
-          }*/
-          //y beeing ignored because no verticallity
-        }
+      // normalize client input (just in case client sent non-unit vector)
+      const len = Math.sqrt(input.dirX*input.dirX + input.dirY*input.dirY + input.dirZ*input.dirZ);
+      let dirX = 0, dirY = 0, dirZ = 0;
+      if (len > 0) {
+        dirX = input.dirX / len;
+        dirY = input.dirY / len;
+        dirZ = input.dirZ / len;
+      }
+
+      // compute displacement
+      const moveX = dirX * step;
+      const moveY = dirY * step;
+      const moveZ = dirZ * step;
+
+      if (this.isValidMovement(player, moveX, moveY, moveZ)) {
+        
+        player.x += moveX;
+        player.y += moveY;
+        player.z += moveZ;
+      }
     });
-
-
+  
     this.updateProjectiles(deltaTime);
     this.updateFieldTickEffects();
+  }
+
+  getServerTickIntervalMs(){
+    const MIN_INPUT_INTERVAL = 1000 / 60; // ~16.67ms
+    return MIN_INPUT_INTERVAL;
+  }
+
+  suspiciousBehaviour(playerSessionId:any, reason:any){
+    console.log("SUSPICIOUS: ", playerSessionId, " reason: ",reason);
   }
   onCreate (options: any) {
 
@@ -787,9 +785,10 @@ export class MyRoom extends Room<MyRoomState> {
     this.onMessage("myPlayer/move", (client, message) => {
      // get reference to the player who sent the message
       const player = this.state.players.get(client.sessionId);
-    
-      // enqueue input to user input buffer.
       player.inputQueue.push(message);
+
+      player.latestInput = message;
+
 
     });
 
@@ -874,17 +873,30 @@ export class MyRoom extends Room<MyRoomState> {
 
       this.shootProjectile(projectile);
  
-     });
+    });
 
 
     let elapsedTime = 0;
+    let fixedTickCount = 0;
+    let lastFpsCheckTime = performance.now();
+    let fixedTickFPS = 0;
+    
     this.setSimulationInterval((deltaTime) => {
       elapsedTime += deltaTime;
+    
       while (elapsedTime >= this.fixedTimeStep) {
         elapsedTime -= this.fixedTimeStep;
-        this.fixedTick(this.fixedTimeStep);
-    }
+        this.fixedTick(this.fixedTimeStep/1000);
+        fixedTickCount++;
+      }
     
+      const now = performance.now();
+      if (now - lastFpsCheckTime >= 1000) {
+        fixedTickFPS = fixedTickCount;
+        //console.log(`Fixed Tick FPS: ${fixedTickFPS}`);
+        fixedTickCount = 0;
+        lastFpsCheckTime = now;
+      }
     });
 
   }
