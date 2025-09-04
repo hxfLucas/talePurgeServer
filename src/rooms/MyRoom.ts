@@ -724,6 +724,7 @@ export class MyRoom extends Room<MyRoomState> {
   }
   
   fixedTick(deltaTime: number) {
+ 
     this.state.players.forEach(player => {
       const input = player.latestInput;
       if (!input) return;
@@ -732,7 +733,7 @@ export class MyRoom extends Room<MyRoomState> {
       const velocity = player.movingSpeed ?? BASE_MOVING_SPEED;
       //console.log(" THE DELTA TIME: ",deltaTime);
       // Distance allowed this tick
-      const step = velocity * parseFloat(deltaTime.toFixed(2));
+      const step = velocity * deltaTime;
   
       // normalize client input (just in case client sent non-unit vector)
       const len = Math.sqrt(input.dirX*input.dirX + input.dirY*input.dirY + input.dirZ*input.dirZ);
@@ -742,6 +743,9 @@ export class MyRoom extends Room<MyRoomState> {
         dirY = input.dirY / len;
         dirZ = input.dirZ / len;
       }
+
+      //PREVENT dirY because this game has no verticallity
+      dirY = 0;
 
       // compute displacement
       const moveX = dirX * step;
@@ -883,20 +887,11 @@ export class MyRoom extends Room<MyRoomState> {
     
     this.setSimulationInterval((deltaTime) => {
       elapsedTime += deltaTime;
-    
       while (elapsedTime >= this.fixedTimeStep) {
         elapsedTime -= this.fixedTimeStep;
         this.fixedTick(this.fixedTimeStep/1000);
-        fixedTickCount++;
       }
     
-      const now = performance.now();
-      if (now - lastFpsCheckTime >= 1000) {
-        fixedTickFPS = fixedTickCount;
-        //console.log(`Fixed Tick FPS: ${fixedTickFPS}`);
-        fixedTickCount = 0;
-        lastFpsCheckTime = now;
-      }
     });
 
   }
