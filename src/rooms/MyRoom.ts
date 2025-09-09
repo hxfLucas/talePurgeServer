@@ -5,16 +5,17 @@ import { BASE_MOVING_SPEED } from "../constants";
 import { FlarisMap } from "../maps/Map/FlarisMap";
 import GameDataHelper from "../helper/GameDataHelper";
 
-import {  PlayerInputSettings } from "../player/PlayerInputSettings";
-import { PlayerUISettings } from "../player/PlayerUISettings";
+import {  PlayerInputSettings } from "./schema/schemas/Player/PlayerInputSettings";
+import { PlayerUISettings } from "./schema/schemas/Player/PlayerUISettings";
 
 import { FireballSkill } from "../skills/mage/fireball/FireballSkill";
 import { FirebombSkill } from "../skills/mage/firebomb/FirebombSkill";
 import GameDataPlayerClassIdentifiersHelper from "../helper/identifiers/GameDataPlayerClassIdentifiersHelper";
 import { GameSkill } from "../skills/GameSkill";
-import { Player } from "./schema/schemas/Player";
-import { Projectile } from "./schema/schemas/Projectile";
-import { ProjectileProperties } from "./schema/schemas/ProjectileProperties";
+
+import { Projectile } from "./schema/schemas/Projectile/Projectile";
+import { ProjectileProperties } from "./schema/schemas/Projectile/ProjectileProperties";
+import { Player } from "./schema/schemas/Player/Player";
 export class MyRoom extends Room<MyRoomState> {
   maxClients = 100; //todo later prevent from creating new rooms when max clients reached
   state = new MyRoomState();

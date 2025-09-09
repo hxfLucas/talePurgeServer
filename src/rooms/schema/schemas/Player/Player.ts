@@ -1,8 +1,4 @@
 
-import { ArraySchema, MapSchema, Schema, type } from "@colyseus/schema";
-import { PlayerUISettings } from "../../../player/PlayerUISettings";
-import { PlayerInputSettings } from "../../../player/PlayerInputSettings";
-
 /*
 Player is not a broadcasted state because it is conditionally broadcasted on the "AreaOfInterest"
 */

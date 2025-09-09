@@ -2,11 +2,11 @@ import { ArraySchema, MapSchema, Schema, type } from "@colyseus/schema";
 import { GameMapObject } from "../../maps/Classes/GameMapObject";
 import { GameSkill } from "../../skills/GameSkill";
 import { GamePlayerClass } from "../../classes/GamePlayerClass";
-import {  PlayerInputSettings } from "../../player/PlayerInputSettings";
-import { PlayerUISettings } from "../../player/PlayerUISettings";
+import {  PlayerInputSettings } from "./schemas/Player/PlayerInputSettings";
+import { PlayerUISettings } from "./schemas/Player/PlayerUISettings";
 import { GameDataGlobal } from "../../GameDataGlobal";
-import { Player } from "./schemas/Player";
-import { Projectile } from "./schemas/Projectile";
+import { Projectile } from "./schemas/Projectile/Projectile";
+import { Player } from "./schemas/Player/Player";
 
 export class GameMap extends Schema {
 
@@ -118,9 +118,9 @@ export class MeleeStrike extends Schema {
 export class MyRoomState extends Schema {
 
   @type("string") mySynchronizedProperty: string = "Hello world";
-  players = new Map<Player>();
+  players = new Map<string, Player>();
   
-  projectiles = new Map<Projectile>();
+  projectiles = new Map<string, Projectile>();
 
   mapKeyProjectilePlayerHitPreventDoubleHits = new Map<string, boolean>(); //for projectiles that go through bodies, prevent hitting damage more times as it travels inside the player body, currently its only good for "projectileGoesThroughPlayers", this map has a key proj_sess_id + player_sess_id
 

@@ -1,6 +1,6 @@
 import { ArraySchema, MapSchema, Schema, type } from "@colyseus/schema";
-import { PlayerUISettings } from "../../../player/PlayerUISettings";
-import { PlayerInputSettings } from "../../../player/PlayerInputSettings";
+import { PlayerUISettings } from "../Player/PlayerUISettings";
+import { PlayerInputSettings } from "../Player/PlayerInputSettings";
 
 //only needed server side because client side we alraedy get it from the metadata
 export class ProjectileProperties {
