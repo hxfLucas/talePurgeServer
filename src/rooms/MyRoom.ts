@@ -1,5 +1,5 @@
 import { Room, Client } from "@colyseus/core";
-import { FieldEffect, FieldTickEffect, MeleeStrike, MyRoomState, Projectile, ProjectileProperties, WhatWasHit } from "./schema/MyRoomState";
+import { FieldEffect, FieldTickEffect, MeleeStrike, MyRoomState, WhatWasHit } from "./schema/MyRoomState";
 
 import { BASE_MOVING_SPEED } from "../constants";
 import { FlarisMap } from "../maps/Map/FlarisMap";
@@ -13,6 +13,8 @@ import { FirebombSkill } from "../skills/mage/firebomb/FirebombSkill";
 import GameDataPlayerClassIdentifiersHelper from "../helper/identifiers/GameDataPlayerClassIdentifiersHelper";
 import { GameSkill } from "../skills/GameSkill";
 import { Player } from "./schema/schemas/Player";
+import { Projectile } from "./schema/schemas/Projectile";
+import { ProjectileProperties } from "./schema/schemas/ProjectileProperties";
 export class MyRoom extends Room<MyRoomState> {
   maxClients = 100; //todo later prevent from creating new rooms when max clients reached
   state = new MyRoomState();
@@ -770,6 +772,39 @@ export class MyRoom extends Room<MyRoomState> {
     return MIN_INPUT_INTERVAL;
   }
 
+
+/*
+for simplicity, a simple distance check
+*/
+broadcastAOIProjectiles(){
+  const maxAOIRadius = 50; //50 units of distance
+  for (const client of this.clients) {
+    const me = this.state.players.get(client.sessionId);
+    if (!me) continue;
+    let playerClientSessionId = client.sessionId;
+    const nearby: any[] = [];
+    for (const [sessionId, projectile] of this.state.projectiles) {
+      if (!projectile) continue;
+
+      const dx = projectile.x - me.x;
+      const dy = projectile.y - me.y;
+      const dz = projectile.z - me.z;
+
+      // compute Euclidean distance
+      const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+      //console.log("the distance ", distance);
+      if (distance <= maxAOIRadius) {
+
+        let dataToSend: Projectile = projectile;
+
+        nearby.push(dataToSend);
+      }
+    }
+
+    client.send("aoiProjectilesData", { projectilesData: nearby });
+  }
+}
+
 //area of interest broadcast
 // area of interest broadcast
 broadcastAOIPlayers() {
@@ -939,6 +974,7 @@ broadcastAOIPlayers() {
         this.fixedTick(this.fixedTimeStep/1000);
 
         this.broadcastAOIPlayers();
+        this.broadcastAOIProjectiles();
       }
     
     });

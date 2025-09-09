@@ -6,6 +6,7 @@ import {  PlayerInputSettings } from "../../player/PlayerInputSettings";
 import { PlayerUISettings } from "../../player/PlayerUISettings";
 import { GameDataGlobal } from "../../GameDataGlobal";
 import { Player } from "./schemas/Player";
+import { Projectile } from "./schemas/Projectile";
 
 export class GameMap extends Schema {
 
@@ -35,21 +36,7 @@ export class AOETriggeringEffect extends Schema{
   @type("number") z:number;
 }
 
-//only needed server side because client side we alraedy get it from the metadata
-export class ProjectileProperties extends Schema {
-  @type("number") projectileSpeed:number;
-  @type("number") projectileWidth:number;
-  @type("number") projectileHeight:number;
-  @type("string") projectileHitboxType:"CUBOID" | "SPHERE"; //to verify collisions, CUBOID is better performant, but for certain things dome is better
-  @type("number") projectablePeakScale:number;
-  
-  @type("number") maxDistance:number;
 
-  @type("number") hitAOERadius:number;
-  @type("number") hitAOEDamagingFieldDurationMilliseconds:number;
-  @type("number") hitAOEDamagingFieldTicks:number;
-  
-}
 
 export class WhatWasHit{
 
@@ -107,42 +94,6 @@ export class FieldTickEffect{
     widthEffectArea: number;
 }
 
-export class Projectile extends Schema {
-
-  @type("string") uniqueSessionId: string;
-  //todo ignore this startX Y Z and target and get it from player pos in the server side.
-  //todo implement
-  @type("number") startX: number;
-  @type("number") startY: number;
-  @type("number") startZ: number;
-
-  @type("number") targetX: number;
-  @type("number") targetY: number;
-  @type("number") targetZ: number;
-
-  //cur pos
-  @type("number") x: number;
-  @type("number") y: number;
-  @type("number") z: number;
-
-
-  @type("number") dirX: number;
-  @type("number") dirY: number;
-  @type("number") dirZ: number;
-
-  @type("number") castedFromGroundY: number;
-
-  @type("number") traveled: number = 0;
-  @type("number") effectiveDistance:number = 0; //calculated max distance it will travel until it hits something
-
-  @type("string") skillIdentifier: string;
-  @type("string") ownerPlayerSessionId: string;
-
-
-  @type(ProjectileProperties) projectileProperties: ProjectileProperties;
-
-}
-
 
 export class MeleeStrike extends Schema {
 
@@ -169,7 +120,7 @@ export class MyRoomState extends Schema {
   @type("string") mySynchronizedProperty: string = "Hello world";
   players = new Map<Player>();
   
-  @type({ map: Projectile }) projectiles = new MapSchema<Projectile>();
+  projectiles = new Map<Projectile>();
 
   mapKeyProjectilePlayerHitPreventDoubleHits = new Map<string, boolean>(); //for projectiles that go through bodies, prevent hitting damage more times as it travels inside the player body, currently its only good for "projectileGoesThroughPlayers", this map has a key proj_sess_id + player_sess_id
 

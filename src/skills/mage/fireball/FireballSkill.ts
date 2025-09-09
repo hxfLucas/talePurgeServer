@@ -15,11 +15,11 @@ export class FireballSkill {
         this.gameSkill.skillIdentifier = GameDataSkillsIdentifiersHelper().getFireballSkillIdentifier();
         this.gameSkill.castMilliseconds = 250;
         this.gameSkill.cooldownMilliseconds = 500;
-        this.gameSkill.maxDistance = 10;
+        this.gameSkill.maxDistance = 15;
         this.gameSkill.projectileSpeed = 0.5;
 
         this.gameSkill.projectileGoesThroughPlayers = false;
-
+        this.gameSkill.projectablePeakScale = 0.0002;
         
         /*
         this.gameSkill.hitAOERadius = 5;
