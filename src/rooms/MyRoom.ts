@@ -1,5 +1,5 @@
 import { Room, Client } from "@colyseus/core";
-import { FieldEffect, FieldTickEffect, MeleeStrike, MyRoomState, WhatWasHit } from "./schema/MyRoomState";
+import {  FieldTickEffect, MeleeStrike, MyRoomState, WhatWasHit } from "./schema/MyRoomState";
 
 import { BASE_MOVING_SPEED } from "../constants";
 import { FlarisMap } from "../maps/Map/FlarisMap";
@@ -16,6 +16,7 @@ import { GameSkill } from "../skills/GameSkill";
 import { Projectile } from "./schema/schemas/Projectile/Projectile";
 import { ProjectileProperties } from "./schema/schemas/Projectile/ProjectileProperties";
 import { Player } from "./schema/schemas/Player/Player";
+import { FieldEffect } from "./schema/schemas/FieldEffect/FieldEffect";
 export class MyRoom extends Room<MyRoomState> {
   maxClients = 100; //todo later prevent from creating new rooms when max clients reached
   state = new MyRoomState();
@@ -555,7 +556,7 @@ export class MyRoom extends Room<MyRoomState> {
           if(arrWhatWasHit.length > 0){
             let spotHitCheckAoe:WhatWasHit = arrWhatWasHit[0];
             //check other possible hits on the aoe range explosion
-            let aoeProjectile:Projectile = proj.clone();
+            let aoeProjectile:Projectile = proj.deepCloneProjectile(proj);//proj.clone();
 
             //check if hit aoe will spawn another "hittable" like a burning field or healing field
             if(skillData?.hitAOEDamagingFieldDurationMilliseconds > 0 && skillData?.hitAOEDamagingFieldTicks > 0){

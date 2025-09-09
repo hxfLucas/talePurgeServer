@@ -36,6 +36,19 @@ export class Projectile{
   ownerPlayerSessionId: string;
 
 
-  @type(ProjectileProperties) projectileProperties: ProjectileProperties;
+  projectileProperties: ProjectileProperties;
 
+
+  deepCloneProjectile(original: Projectile): Projectile {
+    const rawCopy = structuredClone(original);
+    const cloned = Object.assign(new Projectile(), rawCopy);
+  
+    // manually rehydrate nested class
+    cloned.projectileProperties = Object.assign(
+      new ProjectileProperties(),
+      rawCopy.projectileProperties
+    );
+  
+    return cloned;
+  }
 }

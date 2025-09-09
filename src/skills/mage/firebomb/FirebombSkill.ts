@@ -15,11 +15,14 @@ export class FirebombSkill {
         this.gameSkill.castMilliseconds = 250;
         this.gameSkill.cooldownMilliseconds = 3000;
         this.gameSkill.maxDistance = 20;
-        this.gameSkill.hitAOERadius = 1;
+
         
         //keep the field burning for 2 seconds
+        this.gameSkill.hitAOERadius = 5;
         this.gameSkill.hitAOEDamagingFieldDurationMilliseconds = 2000;
-        this.gameSkill.hitAOEDamagingFieldTicks = 5;
+        this.gameSkill.hitAOEDamagingFieldTicks = 100;
+        this.gameSkill.hitAOEDamagingFieldWidth = 10;
+        this.gameSkill.hitAOEDamagingFieldHeight= 5;
         //---
         this.gameSkill.skillType = "PROJECTABLE_THROWABLE";
         this.gameSkill.requiresClassIdentifier = GameDataPlayerClassIdentifiersHelper().getMageClassIdentifier()
