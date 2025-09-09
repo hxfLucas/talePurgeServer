@@ -939,6 +939,11 @@ export class MyRoom extends Room<MyRoomState> {
     // (client.sessionId is unique per connection!)
     this.state.players.set(client.sessionId, player);
     
+    
+    client.send("privateUserSettingsUpdate", {
+      playerUISettings:playerUISettings,
+      playerInputSettings:playerInputSettings
+    });
 
     
   }

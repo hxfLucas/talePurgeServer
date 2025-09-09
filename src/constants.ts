@@ -1,1 +1,1 @@
-export const BASE_MOVING_SPEED = 4;
+export const BASE_MOVING_SPEED = 8;

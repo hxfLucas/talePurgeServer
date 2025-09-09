@@ -171,7 +171,7 @@ export class Player extends Schema {
 
   @type("string") playerSessionId: string;
 
-  //positioning
+  //positioning, all clients
   @type("number") x: number;
   @type("number") y: number;
   @type("number") z: number;
@@ -184,12 +184,15 @@ export class Player extends Schema {
 
   @type("string") playerClassIdentifier: string;
  
+  //private send to the specific client on specific occasions
 
-  @type(PlayerUISettings) playerUISettings: PlayerUISettings;
-  @type(PlayerInputSettings) playerInputSettings: PlayerInputSettings;
+  //sent on join privately
+  playerUISettings: PlayerUISettings;
+  playerInputSettings: PlayerInputSettings;
 
+
+  //server only
   inputQueue: any[] = [];
-
   latestInput:any = null;
 
 }
