@@ -1,6 +1,6 @@
 import { Room, Client } from "@colyseus/core";
 import { FieldEffect, FieldTickEffect, MeleeStrike, MyRoomState, Projectile, ProjectileProperties, WhatWasHit } from "./schema/MyRoomState";
-import { Player } from "./schema/MyRoomState";
+
 import { BASE_MOVING_SPEED } from "../constants";
 import { FlarisMap } from "../maps/Map/FlarisMap";
 import GameDataHelper from "../helper/GameDataHelper";
@@ -12,6 +12,7 @@ import { FireballSkill } from "../skills/mage/fireball/FireballSkill";
 import { FirebombSkill } from "../skills/mage/firebomb/FirebombSkill";
 import GameDataPlayerClassIdentifiersHelper from "../helper/identifiers/GameDataPlayerClassIdentifiersHelper";
 import { GameSkill } from "../skills/GameSkill";
+import { Player } from "./schema/schemas/Player";
 export class MyRoom extends Room<MyRoomState> {
   maxClients = 100; //todo later prevent from creating new rooms when max clients reached
   state = new MyRoomState();
@@ -771,7 +772,7 @@ export class MyRoom extends Room<MyRoomState> {
 
 //area of interest broadcast
 // area of interest broadcast
-broadcastAOI() {
+broadcastAOIPlayers() {
   const maxAOIRadius = 100; // AOI radius in world units
 
   for (const client of this.clients) {
@@ -937,7 +938,7 @@ broadcastAOI() {
         elapsedTime -= this.fixedTimeStep;
         this.fixedTick(this.fixedTimeStep/1000);
 
-        this.broadcastAOI();
+        this.broadcastAOIPlayers();
       }
     
     });
@@ -974,20 +975,20 @@ broadcastAOI() {
     playerInputSettings.keyboardCodeAlternativeCameraZoomOut = 'ArrowDown';
     playerInputSettings.keyboardKeyAlternativeCameraZoomOut = 'arrowdown';
 
-    player.playerInputSettings = playerInputSettings;
+    //player.playerInputSettings = playerInputSettings;
 
     let playerUISettings = new PlayerUISettings();
     
     playerUISettings.skillBar_skillOneIdentifier = new FireballSkill().getGameSkill().skillIdentifier;
     playerUISettings.skillBar_skillTwoIdentifier = new FirebombSkill().getGameSkill().skillIdentifier;
-    player.playerUISettings = playerUISettings;
+    //player.playerUISettings = playerUISettings;
 
-    player.lastSkillSlotSelected;
+    //player.lastSkillSlotSelected;
     // place player in the map of players by its sessionId
     // (client.sessionId is unique per connection!)
+    
+    console.log("GETTING THIS: ",playerInputSettings);
     this.state.players.set(client.sessionId, player);
-    
-    
     client.send("privateUserSettingsUpdate", {
       playerUISettings:playerUISettings,
       playerInputSettings:playerInputSettings

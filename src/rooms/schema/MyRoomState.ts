@@ -5,6 +5,7 @@ import { GamePlayerClass } from "../../classes/GamePlayerClass";
 import {  PlayerInputSettings } from "../../player/PlayerInputSettings";
 import { PlayerUISettings } from "../../player/PlayerUISettings";
 import { GameDataGlobal } from "../../GameDataGlobal";
+import { Player } from "./schemas/Player";
 
 export class GameMap extends Schema {
 
@@ -163,47 +164,10 @@ export class MeleeStrike extends Schema {
 
 }
 
-export class Player extends Schema {
-
-  @type("string") playerSessionId: string;
-
-  //positioning, all clients
-  /*@type("number") x: number;
-  @type("number") y: number;
-  @type("number") z: number;*/
-  x:number;
-  y:number;
-  z:number;
-
-  /*@type("number") yGroundRelative:number; //the feet of the player
-
-  @type("number") lastSkillSlotSelected: number;
-
-  @type("number") movingSpeed: number;
-
-  @type("string") playerClassIdentifier: string;*/
-  yGroundRelative:number; //the feet of the player
-  lastSkillSlotSelected: number;
-  movingSpeed: number;
-  playerClassIdentifier: string;
-  
-  //private send to the specific client on specific occasions
-
-  //sent on join privately
-  playerUISettings: PlayerUISettings;
-  playerInputSettings: PlayerInputSettings;
-
-
-  //server only
-  inputQueue: any[] = [];
-  latestInput:any = null;
-
-}
-
 export class MyRoomState extends Schema {
 
   @type("string") mySynchronizedProperty: string = "Hello world";
-  @type({ map: Player }) players = new MapSchema<Player>();
+  players = new Map<Player>();
   
   @type({ map: Projectile }) projectiles = new MapSchema<Projectile>();
 
