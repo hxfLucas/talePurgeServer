@@ -769,6 +769,52 @@ export class MyRoom extends Room<MyRoomState> {
     return MIN_INPUT_INTERVAL;
   }
 
+//area of interest broadcast
+// area of interest broadcast
+broadcastAOI() {
+  const maxAOIRadius = 100; // AOI radius in world units
+
+  for (const client of this.clients) {
+    const me = this.state.players.get(client.sessionId);
+    if (!me) continue;
+
+    const nearby: any[] = [];
+
+    for (const [sessionId, player] of this.state.players) {
+      if (!player) continue;
+
+      const dx = player.x - me.x;
+      const dy = player.y - me.y;
+      const dz = player.z - me.z;
+
+      // compute Euclidean distance
+      const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+      //console.log("the distance ", distance);
+      if (distance <= maxAOIRadius) {
+        let dataToSend: any = {
+          playerSessionId: player.playerSessionId,
+          x: player.x,
+          y: player.y,
+          z: player.z,
+          yGroundRelative: player.yGroundRelative,
+          movingSpeed: player.movingSpeed,
+          playerClassIdentifier: player.playerClassIdentifier,
+        };
+
+        // extra info only for self
+        if (sessionId === client.sessionId) {
+          dataToSend.lastSkillSlotSelected = player.lastSkillSlotSelected;
+        }
+
+        nearby.push(dataToSend);
+      }
+    }
+
+    client.send("aoiPlayersData", { playersData: nearby });
+  }
+}
+
+
   suspiciousBehaviour(playerSessionId:any, reason:any){
     console.log("SUSPICIOUS: ", playerSessionId, " reason: ",reason);
   }
@@ -890,6 +936,8 @@ export class MyRoom extends Room<MyRoomState> {
       while (elapsedTime >= this.fixedTimeStep) {
         elapsedTime -= this.fixedTimeStep;
         this.fixedTick(this.fixedTimeStep/1000);
+
+        this.broadcastAOI();
       }
     
     });
