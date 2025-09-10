@@ -775,6 +775,35 @@ export class MyRoom extends Room<MyRoomState> {
   }
 
 
+
+broadcastAOIFieldEffects(){
+  const maxAOIRadius = 50; //50 units of distance
+  for (const client of this.clients) {
+    const me = this.state.players.get(client.sessionId);
+    if (!me) continue;
+    let playerClientSessionId = client.sessionId;
+    const nearby: any[] = [];
+    for (const [sessionId, fieldEffect] of this.state.fieldEffects) {
+      if (!fieldEffect) continue;
+
+      const dx = fieldEffect.x - me.x;
+      const dy = fieldEffect.y - me.y;
+      const dz = fieldEffect.z - me.z;
+
+      // compute Euclidean distance
+      const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+      //console.log("the distance ", distance);
+      if (distance <= maxAOIRadius) {
+
+        let dataToSend: FieldEffect = fieldEffect;
+
+        nearby.push(dataToSend);
+      }
+    }
+
+    client.send("aoiFieldEffectsData", { fieldEffectsData: nearby });
+  }
+}
 /*
 for simplicity, a simple distance check
 */
@@ -977,6 +1006,7 @@ broadcastAOIPlayers() {
 
         this.broadcastAOIPlayers();
         this.broadcastAOIProjectiles();
+        this.broadcastAOIFieldEffects();
       }
     
     });

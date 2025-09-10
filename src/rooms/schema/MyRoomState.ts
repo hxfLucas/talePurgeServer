@@ -107,7 +107,7 @@ export class MyRoomState extends Schema {
   mapKeyProjectilePlayerHitPreventDoubleHits = new Map<string, boolean>(); //for projectiles that go through bodies, prevent hitting damage more times as it travels inside the player body, currently its only good for "projectileGoesThroughPlayers", this map has a key proj_sess_id + player_sess_id
 
   fieldTickEffects = new Map<string, FieldTickEffect>(); //no @type to avoid broadcasting ticks to the client
-  @type({ map: FieldEffect }) fieldEffects = new MapSchema<FieldEffect>();
+  fieldEffects = new Map<string, FieldEffect>();
 
   @type(GameMap) mapData = new GameMap();
   @type(GameData) gameData = new GameData();
