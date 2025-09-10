@@ -96,7 +96,7 @@ export class MyRoom extends Room<MyRoomState> {
         if (distance <= maxAOIRadius) {
   
           let dataToSend: WhatWasHit = whatWasHit;
-          console.log("SENDING: ",dataToSend);
+         
           nearby.push(dataToSend);
         }
       }
@@ -891,7 +891,7 @@ broadcastAOIData(){
     
     let projectilesDataChangedResult = aoiMetaData.getChangedProjectilesDataStatus(projectilesData);
     if(projectilesDataChangedResult.changed){
-      aoiMetaData.mapPlayersHash = projectilesDataChangedResult.newEntityMetadata.mapProjectileHash;
+      aoiMetaData.mapProjectileHash = projectilesDataChangedResult.newEntityMetadata.mapProjectileHash;
       hasSomethingToUpdate = true;
     }else{
       projectilesData = null; //null means nothing to change
