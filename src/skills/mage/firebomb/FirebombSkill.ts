@@ -19,7 +19,7 @@ export class FirebombSkill {
         
         //keep the field burning for 2 seconds
         this.gameSkill.hitAOERadius = 5;
-        this.gameSkill.hitAOEDamagingFieldDurationMilliseconds = 2000;
+        this.gameSkill.hitAOEDamagingFieldDurationMilliseconds = 10000;
         this.gameSkill.hitAOEDamagingFieldTicks = 100;
         this.gameSkill.hitAOEDamagingFieldWidth = 10;
         this.gameSkill.hitAOEDamagingFieldHeight= 5;
