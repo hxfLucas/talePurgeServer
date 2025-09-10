@@ -17,8 +17,6 @@ export class FirebombSkill {
         this.gameSkill.maxDistance = 20;
 
         
-        this.gameSkill.allowSelfInflictingDamage = true;
-        
         //keep the field burning for 2 seconds
         this.gameSkill.hitAOERadius = 5;
         this.gameSkill.hitAOEDamagingFieldDurationMilliseconds = 10000;

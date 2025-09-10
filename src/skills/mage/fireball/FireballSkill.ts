@@ -17,6 +17,7 @@ export class FireballSkill {
         this.gameSkill.cooldownMilliseconds = 500;
         this.gameSkill.maxDistance = 15;
         this.gameSkill.projectileSpeed = 0.5;
+        this.gameSkill.projectileWidth = 5;
 
         this.gameSkill.projectileGoesThroughPlayers = false;
         this.gameSkill.projectablePeakScale = 0.0002;

@@ -600,7 +600,7 @@ export class MyRoom extends Room<MyRoomState> {
         
         if(!hasHitAOE){
 
-          if(arrWhatWasHit && arrWhatWasHit.length > 0){
+          if(arrWhatWasHit && arrWhatWasHit.length > 0 && skillData?.projectileEnableHitVisualEffect){
             arrWhatWasHit[0].playAnimationHit = true; //no aoe, direct hit, hit the target
           }
           for(let i = 0; i<arrWhatWasHit.length; i++){
@@ -678,7 +678,7 @@ export class MyRoom extends Room<MyRoomState> {
             //radius = raio, portanto multiplicar por 2 para verdadeira largura e altura
             aoeProjectile.projectileProperties.projectileHeight = proj.projectileProperties.hitAOERadius*2;
             aoeProjectile.projectileProperties.projectileWidth = proj.projectileProperties.hitAOERadius*2;
-
+            aoeProjectile.projectileProperties.projectileHitboxType = "SPHERE";
             //HERE CREATE A NEW METHOD CALLED CHECKPROJECTILEAOECOLLISION
             //check if something collides with the AOE radius 
             let checkNewReceiveDmg: WhatWasHit[] | null = this.checkProjectileCollisions(
@@ -692,7 +692,7 @@ export class MyRoom extends Room<MyRoomState> {
               //order hits by the closest to the aoe projectile, so we will only "trigger hit effect" on the closest
 
               checkNewReceiveDmg = this.sortArrayHitsByClosestToProjectile(checkNewReceiveDmg, aoeProjectile);
-              checkNewReceiveDmg[0].playAnimationHit = true; //only play hit animation on the closest hit target
+              checkNewReceiveDmg[0].playAnimationHit = skillData?.projectileEnableHitVisualEffect ? true : false; //only play hit animation on the closest hit target
       
               for(let i = 0; i<checkNewReceiveDmg.length; i++){
                 if(checkNewReceiveDmg[i].hitReceiverType === "PLAYER"){

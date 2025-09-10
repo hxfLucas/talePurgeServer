@@ -5,6 +5,7 @@ import { GamePlayerClass } from "../classes/GamePlayerClass";
 import { MagicPulseSkill } from "../skills/mage/magicPulse/MagicPulseSkill";
 import { PlayerMageClass } from "../classes/mage/PlayerMageClass";
 import { FireballSkill } from "../skills/mage/fireball/FireballSkill";
+import { GrenadeSkill } from "../skills/militar/grenade/GrenadeSkill";
 
 function GameDataHelper(){
 
@@ -21,6 +22,10 @@ function GameDataHelper(){
 
         let magicPulseSkill = new MagicPulseSkill();
         gameSkillsMap.set(magicPulseSkill.gameSkill.skillIdentifier,magicPulseSkill.getGameSkill());
+
+        let militarGrenadeSkill = new GrenadeSkill();
+        gameSkillsMap.set(militarGrenadeSkill.gameSkill.skillIdentifier,militarGrenadeSkill.getGameSkill());
+
 
         //add new skills here
 

@@ -11,18 +11,21 @@ export class GrenadeSkill {
 
     constructor(){
         this.gameSkill = new GameSkill();
-        this.gameSkill.skillIdentifier = GameDataSkillsIdentifiersHelper().getFirebombSkillIdentifier();
+        this.gameSkill.skillIdentifier = GameDataSkillsIdentifiersHelper().getGrenadeSkillIdentifier();
         this.gameSkill.castMilliseconds = 250;
         this.gameSkill.cooldownMilliseconds = 3000;
         this.gameSkill.maxDistance = 20;
 
-        
+        this.gameSkill.projectileEnableHitVisualEffect = false;
+
+        this.gameSkill.allowSelfInflictingDamage = true;
         //keep the field burning for 2 seconds
-        this.gameSkill.hitAOERadius = 5;
-        this.gameSkill.hitAOEDamagingFieldDurationMilliseconds = 10000;
-        this.gameSkill.hitAOEDamagingFieldTicks = 100;
-        this.gameSkill.hitAOEDamagingFieldWidth = 10;
+        this.gameSkill.hitAOERadius = 2.5;
+        this.gameSkill.hitAOEDamagingFieldDurationMilliseconds = 1000;
+        this.gameSkill.hitAOEDamagingFieldTicks = 1;
+        this.gameSkill.hitAOEDamagingFieldWidth = 5;
         this.gameSkill.hitAOEDamagingFieldHeight= 5;
+       
         //---
         this.gameSkill.skillType = "PROJECTABLE_THROWABLE";
         this.gameSkill.requiresClassIdentifier = GameDataPlayerClassIdentifiersHelper().getMageClassIdentifier()

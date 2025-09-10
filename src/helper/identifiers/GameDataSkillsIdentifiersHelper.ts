@@ -11,10 +11,14 @@ function GameDataSkillsIdentifiersHelper(){
         return "MAGE_MAGIC_PULSE_SKILL";
     }
 
+    function getGrenadeSkillIdentifier(){
+        return "MILITAR_GRENADE_SKILL";
+    }
     return {
         getFireballSkillIdentifier,
         getFirebombSkillIdentifier,
-        getMagicPulseSkillIdentifier
+        getMagicPulseSkillIdentifier,
+        getGrenadeSkillIdentifier
     };
 }
 

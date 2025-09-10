@@ -22,6 +22,8 @@ export class GameSkill extends Schema  {
       @type("number") projectileWidth: number;
       @type("number") projectileHeight: number;
       @type("string") projectileHitboxType: "CUBOID" | "SPHERE";
+
+      @type("boolean") projectileEnableHitVisualEffect:boolean; //simply controls if it will visually show a hit animation or skip, not needed for grenades for example
       
       @type("number") projectablePeakScale: number; //scale for how high it goes before it starts falling on skill types "PROJECTABLE" that are not _NO_GRAVITY
 
@@ -56,11 +58,13 @@ export class GameSkill extends Schema  {
             this.projectileHeight = 0.312;
             this.projectileHitboxType = "SPHERE";
 
+            this.projectileEnableHitVisualEffect = true;
+
             this.projectileGoesThroughPlayers = false;
 
 
             this.allowSelfInflictingDamage = false;
-            
+
             //throwable defaults
             this.hitAOERadius = 0;
             this.hitAOEDamagingFieldDurationMilliseconds = 0;
