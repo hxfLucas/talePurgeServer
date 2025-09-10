@@ -51,12 +51,61 @@ export class MyRoom extends Room<MyRoomState> {
   }
 
 
-  broadcastSkillHit(whatWasHit:WhatWasHit){
+  broadcastSkillHit(arrWhatWasHit:WhatWasHit[]){
 
-    this.broadcast("skillHitSomething", {
+    //only send to the relevant clients
+    /*this.broadcast("skillHitSomething", {
       whatWasHit:whatWasHit
-    });
+    });*/
 
+    if(arrWhatWasHit.length === 0){
+      return;
+    }
+    const maxAOIRadius = 30; //30 units of distance
+    for (const client of this.clients) {
+      const me = this.state.players.get(client.sessionId);
+      if (!me) continue;
+      let playerClientSessionId = client.sessionId;
+      const nearby: any[] = [];
+      for (const whatWasHit of arrWhatWasHit) {
+        if (!whatWasHit) continue;
+        
+        let hitReceivingX = null;
+        let hitReceivingY = null;
+        let hitReceivingZ = null;
+        //IMPLEMENT HERE all types of receiver locations
+        if(whatWasHit.hitReceiverPlayerSessionId){
+          let srvPlayer = this.state.players.get(whatWasHit.hitReceiverPlayerSessionId);
+          hitReceivingX = srvPlayer.x;
+          hitReceivingY = srvPlayer.y;
+          hitReceivingZ = srvPlayer.z;
+        }
+
+        if(hitReceivingX === undefined || !hitReceivingY === undefined || !hitReceivingZ === undefined){
+          console.log("Rejected broadcast skill hit because the hit receiving coordinates are not defined!");
+          continue;
+        }
+
+        const dx = hitReceivingX - me.x;
+        const dy = hitReceivingY - me.y;
+        const dz = hitReceivingZ - me.z;
+  
+        // compute Euclidean distance
+        const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        //console.log("the distance ", distance);
+        if (distance <= maxAOIRadius) {
+  
+          let dataToSend: WhatWasHit = whatWasHit;
+  
+          nearby.push(dataToSend);
+        }
+      }
+  
+      if(nearby.length > 0){
+        client.send("aoiWhatWasHitData", { whatWasHitData: nearby });
+      }
+      
+    }
   }
   isValidMovement(player: Player, dx: number, dy: number, dz: number) {
     const velocity = player?.movingSpeed ?? BASE_MOVING_SPEED;
@@ -676,7 +725,7 @@ export class MyRoom extends Room<MyRoomState> {
           }
 
 
-          
+          let arrayWhatWasHitToBroadcast = [];
           if(targetsToDamage.length > 0){
 
             for(let i = 0; i< targetsToDamage.length; i++){
@@ -699,8 +748,8 @@ export class MyRoom extends Room<MyRoomState> {
               let damageGiverPlayerSessionId = proj.ownerPlayerSessionId;
               let damageTakerPlayerSessionId = receiverPlayerSessionId;
               //TODO HERE call "take damage from player"
-              this.broadcastSkillHit(targetsToDamage[i]);
-              
+              //this.broadcastSkillHit(targetsToDamage[i]);
+              arrayWhatWasHitToBroadcast.push(targetsToDamage[i]);
               this.state.mapKeyProjectilePlayerHitPreventDoubleHits.set(keyProjectileHitPlayerPreventDoubleDmg, true);
              
             }
@@ -709,10 +758,13 @@ export class MyRoom extends Room<MyRoomState> {
             if(relevantHitTargets.length > 0){
               //there are targets that are not suppose to be damaged but were HIT
               this.sortArrayHitsByClosestToProjectile(relevantHitTargets, proj);
-              this.broadcastSkillHit(relevantHitTargets[0]);
+              //this.broadcastSkillHit(relevantHitTargets[0]);
+              arrayWhatWasHitToBroadcast.push(relevantHitTargets[0]);
             }
 
           }
+
+          this.broadcastSkillHit(arrayWhatWasHitToBroadcast);
           
           
         }
