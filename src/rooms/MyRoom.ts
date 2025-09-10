@@ -74,15 +74,14 @@ export class MyRoom extends Room<MyRoomState> {
         let hitReceivingY = null;
         let hitReceivingZ = null;
         //IMPLEMENT HERE all types of receiver locations
-        if(whatWasHit.hitReceiverPlayerSessionId){
-          let srvPlayer = this.state.players.get(whatWasHit.hitReceiverPlayerSessionId);
-          hitReceivingX = srvPlayer.x;
-          hitReceivingY = srvPlayer.y;
-          hitReceivingZ = srvPlayer.z;
-        }
 
-        if(hitReceivingX === undefined || !hitReceivingY === undefined || !hitReceivingZ === undefined){
-          console.log("Rejected broadcast skill hit because the hit receiving coordinates are not defined!");
+        hitReceivingX = whatWasHit.hitCoordinatesX;
+        hitReceivingY = whatWasHit.hitCoordinatesY;
+        hitReceivingZ = whatWasHit.hitCoordinatesZ;
+
+        if(hitReceivingX === null || !hitReceivingY === null || !hitReceivingZ === null){
+          console.log("Rejected broadcast skill hit because the hit receiving coordinates are not defined! ", whatWasHit);
+
           continue;
         }
 
@@ -96,7 +95,7 @@ export class MyRoom extends Room<MyRoomState> {
         if (distance <= maxAOIRadius) {
   
           let dataToSend: WhatWasHit = whatWasHit;
-  
+          console.log("SENDING: ",dataToSend);
           nearby.push(dataToSend);
         }
       }
@@ -827,8 +826,34 @@ export class MyRoom extends Room<MyRoomState> {
   }
 
 
+broadcastAOIData(){
 
-broadcastAOIFieldEffects(){
+  let mapPlayerSessionIds_arrayFieldEffects = this.getAOIFieldEffects();
+  let mapPlayerSessionIds_arrayProjectiles = this.getAOIProjectiles();
+  for (const client of this.clients) {
+    let sessionId = client.sessionId;
+    let fieldEffectsData = mapPlayerSessionIds_arrayFieldEffects.get(sessionId);
+    if(!fieldEffectsData){
+      fieldEffectsData = [];
+    }
+
+    let projectilesData = mapPlayerSessionIds_arrayProjectiles.get(sessionId);
+    if(!projectilesData){
+      projectilesData = [];
+    }
+
+    client.send("aoiData", { 
+      fieldEffectsData: fieldEffectsData,
+      projectilesData:projectilesData 
+    });
+  }
+
+}
+
+
+getAOIFieldEffects(){
+
+  let mapPlayerSessionIds_arrayFieldEffects:Map<string,FieldEffect[]> = new Map();
   const maxAOIRadius = 50; //50 units of distance
   for (const client of this.clients) {
     const me = this.state.players.get(client.sessionId);
@@ -853,13 +878,19 @@ broadcastAOIFieldEffects(){
       }
     }
 
-    client.send("aoiFieldEffectsData", { fieldEffectsData: nearby });
+    //client.send("aoiFieldEffectsData", { fieldEffectsData: nearby });
+    mapPlayerSessionIds_arrayFieldEffects.set(playerClientSessionId,nearby);
   }
+
+  return mapPlayerSessionIds_arrayFieldEffects;
 }
 /*
 for simplicity, a simple distance check
 */
-broadcastAOIProjectiles(){
+getAOIProjectiles(){
+
+  let mapPlayerSessionIds_arrayProjectiles:Map<string,Projectile[]> = new Map();
+
   const maxAOIRadius = 50; //50 units of distance
   for (const client of this.clients) {
     const me = this.state.players.get(client.sessionId);
@@ -884,8 +915,11 @@ broadcastAOIProjectiles(){
       }
     }
 
-    client.send("aoiProjectilesData", { projectilesData: nearby });
+    //client.send("aoiProjectilesData", { projectilesData: nearby });
+    mapPlayerSessionIds_arrayProjectiles.set(playerClientSessionId,nearby);
   }
+
+  return mapPlayerSessionIds_arrayProjectiles;
 }
 
 //area of interest broadcast
@@ -1056,9 +1090,11 @@ broadcastAOIPlayers() {
         elapsedTime -= this.fixedTimeStep;
         this.fixedTick(this.fixedTimeStep/1000);
 
+        //TODO SAME WITH PLAYERS
         this.broadcastAOIPlayers();
-        this.broadcastAOIProjectiles();
-        this.broadcastAOIFieldEffects();
+        //this.broadcastAOIProjectiles();
+        //this.broadcastAOIFieldEffects();
+        this.broadcastAOIData();
       }
     
     });
