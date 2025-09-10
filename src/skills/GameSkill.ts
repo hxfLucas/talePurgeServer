@@ -28,6 +28,8 @@ export class GameSkill extends Schema  {
 
       @type("boolean") projectileGoesThroughPlayers: boolean; //through players only ,not through obstacles
 
+      @type("boolean") allowSelfInflictingDamage:boolean;
+
       //throwable specific
       @type("number") hitAOERadius: number;
 
@@ -57,6 +59,8 @@ export class GameSkill extends Schema  {
             this.projectileGoesThroughPlayers = false;
 
 
+            this.allowSelfInflictingDamage = false;
+            
             //throwable defaults
             this.hitAOERadius = 0;
             this.hitAOEDamagingFieldDurationMilliseconds = 0;

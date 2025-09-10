@@ -3,7 +3,7 @@
 import GameDataPlayerClassIdentifiersHelper from "../../../helper/identifiers/GameDataPlayerClassIdentifiersHelper";
 import GameDataSkillsIdentifiersHelper from "../../../helper/identifiers/GameDataSkillsIdentifiersHelper";
 import { GameSkill } from "../../GameSkill";
-export class FirebombSkill {
+export class GrenadeSkill {
 
     gameSkill: GameSkill;
 
@@ -16,8 +16,6 @@ export class FirebombSkill {
         this.gameSkill.cooldownMilliseconds = 3000;
         this.gameSkill.maxDistance = 20;
 
-        
-        this.gameSkill.allowSelfInflictingDamage = true;
         
         //keep the field burning for 2 seconds
         this.gameSkill.hitAOERadius = 5;

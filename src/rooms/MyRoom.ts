@@ -171,7 +171,10 @@ export class MyRoom extends Room<MyRoomState> {
     let projectileHitboxType = proj?.projectileProperties?.projectileHitboxType 
       ? proj?.projectileProperties?.projectileHitboxType 
       : "CUBOID";
-  
+
+    let allowSelfInflictingDamage = false;
+    let skillData = this.state.gameData.gameSkills.get(proj.skillIdentifier);
+    allowSelfInflictingDamage = skillData?.allowSelfInflictingDamage;
 
     // Loop through all objects
     for (const gameObject of this.state.mapData.gameMapObjects) {
@@ -244,7 +247,9 @@ export class MyRoom extends Room<MyRoomState> {
 
     // Loop through all players
     for (const [sessionId, player] of this.state.players) {
-      if (sessionId === proj.ownerPlayerSessionId) continue;
+
+     
+      if (!allowSelfInflictingDamage && sessionId === proj.ownerPlayerSessionId) continue;
       
       const playerHitboxWidthX = this.state.gameData.gameDataGlobal.playerHitboxWidth;
       const playerHitboxWidthZ = this.state.gameData.gameDataGlobal.playerHitboxWidthZ;
@@ -356,6 +361,7 @@ export class MyRoom extends Room<MyRoomState> {
       fakeProjectile.z = fieldTickEffect.z;
       fakeProjectile.projectileProperties = new ProjectileProperties();
       fakeProjectile.projectileProperties.projectileHitboxType = "SPHERE";
+      fakeProjectile.skillIdentifier = fieldTickEffect.originSkillIdentifier;
       fakeProjectile.projectileProperties.projectileWidth = fieldTickEffect.widthEffectArea;
       fakeProjectile.projectileProperties.projectileHeight = fieldTickEffect.heightEffectArea;
       fakeProjectile.ownerPlayerSessionId = fieldTickEffect?.ownerPlayerSessionId;
