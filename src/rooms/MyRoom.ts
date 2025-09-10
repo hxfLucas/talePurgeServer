@@ -1102,11 +1102,6 @@ getAOIPlayers() {
       while (elapsedTime >= this.fixedTimeStep) {
         elapsedTime -= this.fixedTimeStep;
         this.fixedTick(this.fixedTimeStep/1000);
-
-        //TODO SAME WITH PLAYERS
-        //this.broadcastAOIPlayers();
-        //this.broadcastAOIProjectiles();
-        //this.broadcastAOIFieldEffects();
         this.broadcastAOIData();
       }
     
