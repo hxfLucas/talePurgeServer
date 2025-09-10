@@ -8,6 +8,7 @@ import { GameDataGlobal } from "../../GameDataGlobal";
 import { Projectile } from "./schemas/Projectile/Projectile";
 import { Player } from "./schemas/Player/Player";
 import { FieldEffect } from "./schemas/FieldEffect/FieldEffect";
+import { AOIMetaData } from "./schemas/AOIMetaData";
 
 export class GameMap extends Schema {
 
@@ -25,16 +26,6 @@ export class GameData extends Schema {
   @type({ map: GamePlayerClass }) gamePlayerClasses = new MapSchema<GamePlayerClass>();
   @type(GameDataGlobal) gameDataGlobal = new GameDataGlobal();
   
-}
-
-//temporary effects on the map
-export class AOETriggeringEffect extends Schema{
-  @type("string") skillIdentifier:number;
-  @type("number") areaWidth:number;
-  @type("number") areaHeight:number;
-  @type("number") x:number;
-  @type("number") y:number;
-  @type("number") z:number;
 }
 
 
@@ -100,9 +91,11 @@ export class MeleeStrike extends Schema {
 export class MyRoomState extends Schema {
 
   @type("string") mySynchronizedProperty: string = "Hello world";
-  players = new Map<string, Player>();
+  players = new Map<string, Player>(); //string key is the player session id
+  aoiMetaData = new Map<string, AOIMetaData>; //string key is the player session that has this meta data
   
-  projectiles = new Map<string, Projectile>();
+
+  projectiles = new Map<string, Projectile>(); //string key = projectile session id
 
   mapKeyProjectilePlayerHitPreventDoubleHits = new Map<string, boolean>(); //for projectiles that go through bodies, prevent hitting damage more times as it travels inside the player body, currently its only good for "projectileGoesThroughPlayers", this map has a key proj_sess_id + player_sess_id
 

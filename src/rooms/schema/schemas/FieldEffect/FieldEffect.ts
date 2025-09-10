@@ -18,4 +18,14 @@ export class FieldEffect{
 
   fieldType: "DAMAGING" | "HEALING" | "JUST_VISUAL"; //mostly used to decide what animation to play on the field and the effect to hit on "players" in that area based on the originSkillIdentifier + fieldType
 
+
+  //used to check for changes
+  public static hashEntity(sendingPlayerJsonObject:any){
+    const keysToHash = ["x", "y", "z", "dirX", "dirY", "dirZ", "heightEffectArea", "widthEffectArea"];
+    return keysToHash
+      .map(key => `${sendingPlayerJsonObject[key] ?? "null"}`) // safely access, handle undefined
+      .join(",");
+  }
+  
+
 }

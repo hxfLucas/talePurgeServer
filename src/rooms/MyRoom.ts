@@ -17,6 +17,7 @@ import { Projectile } from "./schema/schemas/Projectile/Projectile";
 import { ProjectileProperties } from "./schema/schemas/Projectile/ProjectileProperties";
 import { Player } from "./schema/schemas/Player/Player";
 import { FieldEffect } from "./schema/schemas/FieldEffect/FieldEffect";
+import { AOIMetaData } from "./schema/schemas/AOIMetaData";
 export class MyRoom extends Room<MyRoomState> {
   maxClients = 100; //todo later prevent from creating new rooms when max clients reached
   state = new MyRoomState();
@@ -833,26 +834,76 @@ broadcastAOIData(){
   let mapPlayerSessionIds_arrayPlayers = this.getAOIPlayers();
   for (const client of this.clients) {
     let sessionId = client.sessionId;
-    let fieldEffectsData = mapPlayerSessionIds_arrayFieldEffects.get(sessionId);
-    if(!fieldEffectsData){
-      fieldEffectsData = [];
+
+
+
+    let aoiMetaData = this.state.aoiMetaData.get(sessionId);
+    if(!aoiMetaData){
+      aoiMetaData = new AOIMetaData();
     }
 
-    let projectilesData = mapPlayerSessionIds_arrayProjectiles.get(sessionId);
-    if(!projectilesData){
-      projectilesData = [];
-    }
+    let hasSomethingToUpdate = false;
+
+    //change detection
+
+    //players
 
     let playersData = mapPlayerSessionIds_arrayPlayers.get(sessionId);
     if(!playersData){
       playersData = [];
     }
 
-    client.send("aoiData", { 
-      fieldEffectsData: fieldEffectsData,
-      projectilesData:projectilesData,
-      playersData:playersData
-    });
+
+    let playersDataChangedResult = aoiMetaData.getChangedPlayersDataStatus(playersData);
+    if(playersDataChangedResult.changed){
+      aoiMetaData.mapPlayersHash = playersDataChangedResult.newEntityMetadata.mapPlayersHash;
+      hasSomethingToUpdate = true;
+    }else{
+      playersData = null; //null means nothing to change
+    }
+
+    //field effects
+    let fieldEffectsData = mapPlayerSessionIds_arrayFieldEffects.get(sessionId);
+    if(!fieldEffectsData){
+      fieldEffectsData = [];
+    }
+
+    let fieldEffectsDataChangedResult = aoiMetaData.getChangedFieldEffectsDataStatus(fieldEffectsData);
+    if(fieldEffectsDataChangedResult.changed){
+      aoiMetaData.mapFieldEffectHash = fieldEffectsDataChangedResult.newEntityMetadata.mapFieldEffectHash;
+      hasSomethingToUpdate = true;
+    }else{
+      fieldEffectsData = null; //null means nothing to change
+    }
+
+    //projectiles
+    let projectilesData = mapPlayerSessionIds_arrayProjectiles.get(sessionId);
+    if(!projectilesData){
+      projectilesData = [];
+    }
+
+    
+    let projectilesDataChangedResult = aoiMetaData.getChangedProjectilesDataStatus(projectilesData);
+    if(projectilesDataChangedResult.changed){
+      aoiMetaData.mapPlayersHash = projectilesDataChangedResult.newEntityMetadata.mapProjectileHash;
+      hasSomethingToUpdate = true;
+    }else{
+      projectilesData = null; //null means nothing to change
+    }
+
+    //-----
+
+    if(hasSomethingToUpdate){
+      //console.log("[",sessionId,"] Has something to send update");
+      
+      this.state.aoiMetaData.set(sessionId, aoiMetaData);
+      client.send("aoiData", { 
+        fieldEffectsData: fieldEffectsData,
+        projectilesData:projectilesData,
+        playersData:playersData
+      });
+    }
+
   }
 
 }

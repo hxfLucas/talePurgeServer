@@ -37,4 +37,17 @@ export class Player  {
   inputQueue: any[] = [];
   latestInput:any = null;
 
+  latestHash:any;
+
+  
+  //used to check for changes
+  public static hashEntity(sendingPlayerJsonObject:any){
+  
+    const keysToHash = ["x", "y", "z", "yGroundRelative", "movingSpeed"];
+
+    return keysToHash
+      .map(key => `${sendingPlayerJsonObject[key] ?? "null"}`) // safely access, handle undefined
+      .join(",");
+  }
+
 }

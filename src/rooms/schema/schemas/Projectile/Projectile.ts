@@ -39,6 +39,14 @@ export class Projectile{
   projectileProperties: ProjectileProperties;
 
 
+  //used to check for changes
+  public static hashEntity(sendingPlayerJsonObject:any){
+    const keysToHash = ["x", "y", "z", "dirX", "dirY", "dirZ", "traveled"];
+    return keysToHash
+      .map(key => `${sendingPlayerJsonObject[key] ?? "null"}`) // safely access, handle undefined
+      .join(",");
+  }
+
   deepCloneProjectile(original: Projectile): Projectile {
     const rawCopy = structuredClone(original);
     const cloned = Object.assign(new Projectile(), rawCopy);
