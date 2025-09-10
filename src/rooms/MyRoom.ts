@@ -830,6 +830,7 @@ broadcastAOIData(){
 
   let mapPlayerSessionIds_arrayFieldEffects = this.getAOIFieldEffects();
   let mapPlayerSessionIds_arrayProjectiles = this.getAOIProjectiles();
+  let mapPlayerSessionIds_arrayPlayers = this.getAOIPlayers();
   for (const client of this.clients) {
     let sessionId = client.sessionId;
     let fieldEffectsData = mapPlayerSessionIds_arrayFieldEffects.get(sessionId);
@@ -842,9 +843,15 @@ broadcastAOIData(){
       projectilesData = [];
     }
 
+    let playersData = mapPlayerSessionIds_arrayPlayers.get(sessionId);
+    if(!playersData){
+      playersData = [];
+    }
+
     client.send("aoiData", { 
       fieldEffectsData: fieldEffectsData,
-      projectilesData:projectilesData 
+      projectilesData:projectilesData,
+      playersData:playersData
     });
   }
 
@@ -924,7 +931,10 @@ getAOIProjectiles(){
 
 //area of interest broadcast
 // area of interest broadcast
-broadcastAOIPlayers() {
+getAOIPlayers() {
+
+  let mapPlayerSessionIds_arrayPlayers:Map<string,Player[]> = new Map();
+
   const maxAOIRadius = 100; // AOI radius in world units
 
   for (const client of this.clients) {
@@ -963,8 +973,11 @@ broadcastAOIPlayers() {
       }
     }
 
-    client.send("aoiPlayersData", { playersData: nearby });
+    //client.send("aoiPlayersData", { playersData: nearby });
+    mapPlayerSessionIds_arrayPlayers.set(client.sessionId,nearby);
   }
+
+  return mapPlayerSessionIds_arrayPlayers;
 }
 
 
@@ -1091,7 +1104,7 @@ broadcastAOIPlayers() {
         this.fixedTick(this.fixedTimeStep/1000);
 
         //TODO SAME WITH PLAYERS
-        this.broadcastAOIPlayers();
+        //this.broadcastAOIPlayers();
         //this.broadcastAOIProjectiles();
         //this.broadcastAOIFieldEffects();
         this.broadcastAOIData();
