@@ -1092,15 +1092,20 @@ getAOIPlayers() {
 
       //console.log("PLAYER IS SHOOTING ",message);
 
-      // Calculate offset distance
-      const offsetDistance = 0.3; //shoot the projectile from a little bit further from the current player position
-
       //TODO implement something to prevent first few "Millis" from colliding with self player? 
       //this offset and collision with self player is only relevant if allowSelfInflictingDamage = true
 
+      //TODO validate if player can even shoot this
       let projectile = new Projectile();
 
+      projectile.skillIdentifier = message.skillIdentifier;
 
+
+      // Calculate offset distance
+      //shoot the projectile from a little bit further from the current player position
+
+      let skillData = this.state.gameData.gameSkills.get(projectile.skillIdentifier);
+      const offsetDistance =skillData.projectileOffsetDistanceStart;
       projectile.dirX = message.dirX;
       projectile.dirY = message.dirY;
       projectile.dirZ = message.dirZ;
@@ -1124,12 +1129,12 @@ getAOIPlayers() {
 
       projectile.traveled = 0;
 
-      projectile.skillIdentifier = message.skillIdentifier;
+    
 
       projectile.ownerPlayerSessionId = client.sessionId;
 
     
-      let skillData = this.state.gameData.gameSkills.get(projectile.skillIdentifier);
+      
    
       //TODO validate if player can even cast this skill, minimum requirements, class, level, etc..
 

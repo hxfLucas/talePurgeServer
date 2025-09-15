@@ -17,6 +17,8 @@ export class GameSkill extends Schema  {
       */
       @type("string") skillType: 'MELEE' | 'PROJECTABLE_THROWABLE' | 'PROJECTABLE_PROJECTILE' | 'PROJECTABLE_NO_GRAVITY'; 
 
+      @type("number") projectileOffsetDistanceStart: number;
+
       //projectile specific
       @type("number") projectileSpeed: number;
       @type("number") projectileWidth: number;
@@ -62,6 +64,7 @@ export class GameSkill extends Schema  {
 
             this.projectileGoesThroughPlayers = false;
 
+            this.projectileOffsetDistanceStart = 0; //distance away from the player in the shooting direction from where the projectile initiates beeing shot from
 
             this.allowSelfInflictingDamage = false;
 

@@ -20,7 +20,9 @@ export class GrenadeSkill {
 
         this.gameSkill.projectileSpeed = 0.2;
 
-        this.gameSkill.allowSelfInflictingDamage = true;
+        this.gameSkill.allowSelfInflictingDamage = false;
+        //todo separate self inflict damage from allow "self collide"
+        
         //keep the field burning for 2 seconds
         this.gameSkill.hitAOERadius = 2.5;
         this.gameSkill.hitAOEDamagingFieldDurationMilliseconds = 1000;
