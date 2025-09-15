@@ -1091,13 +1091,24 @@ getAOIPlayers() {
       if (!player) return;
 
       //console.log("PLAYER IS SHOOTING ",message);
-  
+
+      // Calculate offset distance
+      const offsetDistance = 0.3; //shoot the projectile from a little bit further from the current player position
+
+      //TODO implement something to prevent first few "Millis" from colliding with self player? 
+      //this offset and collision with self player is only relevant if allowSelfInflictingDamage = true
 
       let projectile = new Projectile();
-      projectile.startX = player.x;//message.startX;
+
+
+      projectile.dirX = message.dirX;
+      projectile.dirY = message.dirY;
+      projectile.dirZ = message.dirZ;
+
+      projectile.startX = player.x + projectile.dirX * offsetDistance;//message.startX;
       //shoots from a certain altitude
-      projectile.startY = player.yGroundRelative +  this.state.gameData.gameDataGlobal.defaultPlayerShootStartPositionOffsetFromGroundY;//parseFloat(process.env.PLAYER_SHOOT_START_POSITION_OFFSET_FROM_GROUND_Y);//message.startY;
-      projectile.startZ = player.z;//message.startZ;
+      projectile.startY = player.yGroundRelative +  this.state.gameData.gameDataGlobal.defaultPlayerShootStartPositionOffsetFromGroundY + projectile.dirY * offsetDistance;//parseFloat(process.env.PLAYER_SHOOT_START_POSITION_OFFSET_FROM_GROUND_Y);//message.startY;
+      projectile.startZ = player.z + projectile.dirZ * offsetDistance;//message.startZ;
 
       projectile.castedFromGroundY = player.yGroundRelative;
 
@@ -1105,9 +1116,6 @@ getAOIPlayers() {
       projectile.targetY = message.targetY;
       projectile.targetZ = message.targetZ;
 
-      projectile.dirX = message.dirX;
-      projectile.dirY = message.dirY;
-      projectile.dirZ = message.dirZ;
 
 
       projectile.x = projectile.startX;

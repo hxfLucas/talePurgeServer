@@ -18,6 +18,8 @@ export class GrenadeSkill {
 
         this.gameSkill.projectileEnableHitVisualEffect = false;
 
+        this.gameSkill.projectileSpeed = 0.2;
+
         this.gameSkill.allowSelfInflictingDamage = true;
         //keep the field burning for 2 seconds
         this.gameSkill.hitAOERadius = 2.5;
