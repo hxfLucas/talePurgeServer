@@ -1,7 +1,7 @@
 import { Room, Client } from "@colyseus/core";
 import {  FieldTickEffect, MeleeStrike, MyRoomState, WhatWasHit } from "./schema/MyRoomState";
 
-import { BASE_MOVING_SPEED } from "../constants";
+import { BASE_MOVING_SPEED, PLAYER_MOVEMENT_ANIM_VECTOR_MOVE_CONSIDER_STOPPED_MS } from "../constants";
 import { FlarisMap } from "../maps/Map/FlarisMap";
 import GameDataHelper from "../helper/GameDataHelper";
 
@@ -789,38 +789,81 @@ export class MyRoom extends Room<MyRoomState> {
   fixedTick(deltaTime: number) {
  
     this.state.players.forEach(player => {
+
       const input = player.latestInput;
-      if (!input) return;
-     
-      // Base speed (can depend on sprint, buffs, mounts, etc.)
-      const velocity = player.movingSpeed ?? BASE_MOVING_SPEED;
-      //console.log(" THE DELTA TIME: ",deltaTime);
-      // Distance allowed this tick
-      const step = velocity * deltaTime;
-  
-      // normalize client input (just in case client sent non-unit vector)
-      const len = Math.sqrt(input.dirX*input.dirX + input.dirY*input.dirY + input.dirZ*input.dirZ);
-      let dirX = 0, dirY = 0, dirZ = 0;
-      if (len > 0) {
-        dirX = input.dirX / len;
-        dirY = input.dirY / len;
-        dirZ = input.dirZ / len;
-      }
+      if (input){
+        // Base speed (can depend on sprint, buffs, mounts, etc.)
+        const velocity = player.movingSpeed ?? BASE_MOVING_SPEED;
+        //console.log(" THE DELTA TIME: ",deltaTime);
+        // Distance allowed this tick
+        const step = velocity * deltaTime;
+    
+        // normalize client input (just in case client sent non-unit vector)
+        const len = Math.sqrt(input.dirX*input.dirX + input.dirY*input.dirY + input.dirZ*input.dirZ);
+        let dirX = 0, dirY = 0, dirZ = 0;
+        if (len > 0) {
+          dirX = input.dirX / len;
+          dirY = input.dirY / len;
+          dirZ = input.dirZ / len;
+        }
 
-      //PREVENT dirY because this game has no verticallity
-      dirY = 0;
+        //PREVENT dirY because this game has no verticallity
+        dirY = 0;
 
-      // compute displacement
-      const moveX = dirX * step;
-      const moveY = dirY * step;
-      const moveZ = dirZ * step;
+        // compute displacement
+        const moveX = dirX * step;
+        const moveY = dirY * step;
+        const moveZ = dirZ * step;
 
-      if (this.isValidMovement(player, moveX, moveY, moveZ)) {
+        if (this.isValidMovement(player, moveX, moveY, moveZ)) {
+          
+          player.x += moveX;
+          player.y += moveY;
+          player.z += moveZ;
+
+          //TODO if dirX, dirY and dirZ is 0 then only accept it after sometime has passed
+          //moving direction for animation purposes
+
+
+          console.log("THIS IS A TEST ",dirX,dirY,dirZ);
+          
+          let isStopping = dirX === 0 && dirY === 0 && dirZ === 0;
+
+          let wasAnimationMovingButNowStopping = isStopping && ( player.animMovingVectorX !== 0 || player.animMovingVectorY !== 0 || player.animMovingVectorZ !== 0);
+          
+          if(wasAnimationMovingButNowStopping){
+            //delay anim stop for a few milliseconds
+
+            let msToConsiderStop = PLAYER_MOVEMENT_ANIM_VECTOR_MOVE_CONSIDER_STOPPED_MS;
+
+            player.animStopMovingAfterTS = performance.now() + msToConsiderStop;
+          }else{
+            player.animStopMovingAfterTS = null;
+            player.animMovingVectorX = dirX;
+            player.animMovingVectorY = dirY;
+            player.animMovingVectorZ = dirZ;
+          }
+
+
+          if(isStopping){
+            player.latestInput = null;
+          }
         
-        player.x += moveX;
-        player.y += moveY;
-        player.z += moveZ;
+          
+        }
       }
+
+
+
+      if(player?.animStopMovingAfterTS && performance.now() > player.animStopMovingAfterTS){
+        //console.log("Player considered to have stopped movement");
+        player.animStopMovingAfterTS = null;
+        player.animMovingVectorX = 0;
+        player.animMovingVectorY = 0;
+        player.animMovingVectorZ = 0;
+      }
+
+
     });
   
     this.updateProjectiles(deltaTime);
@@ -1013,6 +1056,9 @@ getAOIPlayers() {
       if (distance <= maxAOIRadius) {
         let dataToSend: any = {
           playerSessionId: player.playerSessionId,
+          animMovingVectorX:player.animMovingVectorX,
+          animMovingVectorY:player.animMovingVectorY,
+          animMovingVectorZ:player.animMovingVectorZ,
           x: player.x,
           y: player.y,
           z: player.z,

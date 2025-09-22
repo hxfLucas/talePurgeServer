@@ -37,13 +37,22 @@ export class Player  {
   inputQueue: any[] = [];
   latestInput:any = null;
 
+  //---------- used to determinate if player is moving and which direction to play
+  //this should not be used to anything besides telling the clients where players are moving towards to show the proper animation
+  //when the player stops moving it doesnt reset to zero for a few milliseconds
+  animMovingVectorX:number;
+  animMovingVectorY:number;
+  animMovingVectorZ:number;
+
+  animStopMovingAfterTS:number;
+  //---------------
   latestHash:any;
 
   
   //used to check for changes
   public static hashEntity(sendingPlayerJsonObject:any){
   
-    const keysToHash = ["x", "y", "z", "yGroundRelative", "movingSpeed"];
+    const keysToHash = ["x", "y", "z", "yGroundRelative", "movingSpeed","animMovingVectorZ","animMovingVectorX","animMovingVectorY"];
 
     return keysToHash
       .map(key => `${sendingPlayerJsonObject[key] ?? "null"}`) // safely access, handle undefined
