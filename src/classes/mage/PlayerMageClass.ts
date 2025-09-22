@@ -16,7 +16,7 @@ export class PlayerMageClass {
     constructor(){
         this.playerClass = new GamePlayerClass();
         this.playerClass.classIdentifier = GameDataPlayerClassIdentifiersHelper().getMageClassIdentifier();
-        this.playerClass.basicAttackSkillIdentifier = GameDataSkillsIdentifiersHelper().getGrenadeSkillIdentifier();//GameDataSkillsIdentifiersHelper().getFireballSkillIdentifier();
+        this.playerClass.basicAttackSkillIdentifier = GameDataSkillsIdentifiersHelper().getFireballSkillIdentifier();
         
     }
 
